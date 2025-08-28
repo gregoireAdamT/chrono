@@ -733,6 +733,96 @@
                         
                         <div class="sync-methods">
                             <div class="sync-method">
+                                <h5>🔗 Configuration Webhook</h5>
+                                <div class="config-inputs">
+                                    <input type="url" id="webhook-url" placeholder="URL de webhook Apps Script" 
+                                           onchange="configurerWebhook()">
+                                    <button class="btn btn-secondary" onclick="testerWebhook()">🔗 Test Global</button>
+                                </div>
+                                <small>Test qui utilise automatiquement la meilleure méthode anti-CORS</small>
+                            </div>
+                            
+                            <div class="sync-method">
+                                <h5>🧪 Tests Individuels Anti-CORS</h5>
+                                <div class="file-buttons">
+                                    <button class="btn btn-secondary" onclick="testStep1()">1️⃣ POST Form</button>
+                                    <button class="btn btn-secondary" onclick="testStep2()">2️⃣ GET Params</button>
+                                    <button class="btn btn-secondary" onclick="testStep3()">3️⃣ Image Track</button>
+                                </div>
+                                <small>Testez chaque méthode individuellement pour identifier laquelle fonctionne</small>
+                            </div>
+                            
+                            <div class="sync-method">
+                                <h5>📋 Méthode Simple : Copier-Coller</h5>
+                                <button class="btn export-btn" onclick="exporterCSVPourSheets()">📋 Copier CSV</button>
+                                <small>Copiez les données puis collez dans Google Sheets (Ctrl+V)</small>
+                            </div>
+                            
+                            <div class="sync-method">
+                                <h5>📁 Import/Export Fichiers</h5>
+                                <div class="file-buttons">
+                                    <button class="btn btn-secondary" onclick="exporterSauvegardeAuto()">📥 Télécharger JSON</button>
+                                    <input type="file" id="csv-import" accept=".csv" style="display: none;" onchange="handleFileImport(event)">
+                                    <button class="btn btn-secondary" onclick="document.getElementById('csv-import').click()">📤 Importer CSV</button>
+                                </div>
+                                <small>Partagez les fichiers entre les deux postes</small>
+                            </div>
+                        </div>
+                        
+                        <div class="google-sheet-instructions">
+                            <h5>💡 Instructions Google Sheets :</h5>
+                            <ol>
+                                <li>Créez un <a href="https://docs.google.com/spreadsheets/create" target="_blank">nouveau Google Sheet</a></li>
+                                <li>Partagez-le avec l'autre chronométreur</li>
+                                <li>Utilisez "Copier CSV" puis Ctrl+V dans le Sheet</li>
+                                <li>Rafraîchissez régulièrement pour voir les mises à jour</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="records-section">
+                <div class="records-header">
+                    <h2>📊 Enregistrements</h2>
+                    <div>
+                        <button class="btn export-btn" onclick="exporterCSV()">📥 Exporter CSV</button>
+                        <button class="btn btn-secondary" onclick="viderDonnees()">🗑️ Vider</button>
+                    </div>
+                </div>
+                
+                <div class="records-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>N° Dossard</th>
+                                <th>Type</th>
+                                <th>Heure</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recordsTable">
+                            <!-- Les enregistrements apparaîtront ici -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+            <!-- Section de configuration de sauvegarde -->
+            <div class="backup-section">
+                <h3>🛡️ Configuration de Sauvegarde</h3>
+                <div class="backup-config">
+                    <div class="backup-status-area">
+                        <div id="backup-status" class="backup-status">Aucune sauvegarde effectuée</div>
+                        <button class="btn btn-secondary" onclick="restaurerSauvegarde()">📥 Restaurer</button>
+                        <button class="btn btn-secondary" onclick="exporterSauvegardeAuto()">💾 Export Backup</button>
+                    </div>
+                    
+                    <div class="google-sheets-config">
+                        <h4>☁️ Synchronisation entre Chronométreurs</h4>
+                        
+                        <div class="sync-methods">
+                            <div class="sync-method">
                                 <h5>⚡ Système Hybride Recommandé</h5>
                                 <div class="config-inputs">
                                     <input type="url" id="webhook-url" placeholder="URL de webhook (Apps Script ou autre)" 
