@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chronométrage Aquathlon XS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        /* Onglets */
+        .tabs-container {
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 5px;
+            gap: 5px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #666;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        /* Contenu des onglets */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chrono-section-single {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .chrono-card-full {
+            width: 100%;
+            max-width: 600px;
+            background: linear-gradient(135deg, #ff9a8b 0%, #fecfef 50%, #fecfef 100%);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .chrono-card-full h2 {
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 2em;
+        }
+
+        .time-display {
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .input-group-large {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        .input-group-large input {
+            flex: 2;
+            padding: 20px;
+            font-size: 18px;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .input-group-large input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-large {
+            flex: 1;
+            padding: 20px 30px;
+            font-size: 18px;
+            min-height: 60px;
+        }
+
+        .controls {
+            margin-bottom: 30px;
+        }
+
+        .controls input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .next-start {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            color: #333;
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .instructions p {
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .instructions kbd {
+            background: #333;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        input[type="number"] {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .records-section {
+            margin-top: 40px;
+        }
+
+        .records-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .records-header h2 {
+            color: #333;
+            font-size: 1.8em;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(17, 153, 142, 0.4);
+        }
+
+        .records-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-depart {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-arrivee {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: #333;
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .chrono-section {
+                flex-direction: column;
+            }
+            
+            .chrono-card {
+                min-width: auto;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .time-display {
+                font-size: 1.5em;
+            }
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* Mini tableaux pour chaque onglet */
+        .mini-records {
+            margin-top: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .mini-records h3 {
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .mini-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .mini-table table {
+            width: 100%;
+            font-size: 14px;
+        }
+
+        .mini-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+            padding: 10px;
+        }
+
+        .mini-table td {
+            padding: 8px 10px;
+        }
+
+        .mini-table .edit-btn, 
+        .mini-table .delete-btn {
+            padding: 2px 6px;
+            font-size: 11px;
+        }
+
+        /* Styles pour la section de sauvegarde */
+        .backup-section {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .backup-section h3, .backup-section h4 {
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .backup-config {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .backup-status-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .backup-status {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            min-width: 200px;
+        }
+
+        .backup-status.success {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .backup-status.error {
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+        }
+
+        .backup-status.cloud {
+            background: rgba(0, 150, 255, 0.2);
+            border: 1px solid rgba(0, 150, 255, 0.3);
+        }
+
+        .google-sheets-config {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .config-inputs {
+            margin-bottom: 15px;
+        }
+
+        .config-inputs input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+
+        .config-inputs small {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Styles pour les méthodes de synchronisation */
+        .sync-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sync-method {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sync-method h5 {
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .sync-method small {
+            display: block;
+            margin-top: 5px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+        }
+
+        .file-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+            flex-wrap: wrap;
+        }
+
+        .google-sheet-instructions {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .google-sheet-instructions h5 {
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .google-sheet-instructions ol {
+            color: rgba(255, 255, 255, 0.9);
+            padding-left: 20px;
+        }
+
+        .google-sheet-instructions ol li {
+            margin-bottom: 5px;
+        }
+
+        .alternative-services {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .alternative-services .btn {
+            flex: 1;
+            min-width: 100px;
+            font-size: 12px;
+            padding: 8px 12px;
+        }
+
+        .failover-status {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .cors-warning {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .cors-warning p {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 10px;
+        }
+
+        .cors-solutions {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0;
+            flex-wrap: wrap;
+        }
+
+        .cors-solutions .btn {
+            flex: 1;
+            min-width: 120px;
+            font-size: 12px;
+        }
+
+        /* Indicateur de statut de connexion */
+        .connection-status {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .connection-status.online {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .connection-status.offline {
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid rgba(255, 165, 0, 0.3);
+        }
+
+        #connection-indicator {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        #connection-details {
+            display: block;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏊‍♂️ Chronométrage Aquathlon XS 🏃‍♀️</h1>
+        
+        <div id="alert-container"></div>
+        
+        <!-- Statut de connexion -->
+        <div class="connection-status" id="connection-status">
+            <span id="connection-indicator">🌐 Chargement...</span>
+            <small id="connection-details">Vérification de la connexion...</small>
+        </div>
+        
+        <!-- Onglets de navigation -->
+        <div class="tabs-container">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('start')">🏊‍♂️ DÉPARTS</button>
+                <button class="tab-btn" onclick="switchTab('finish')">🏁 ARRIVÉES</button>
+                <button class="tab-btn" onclick="switchTab('records')">📊 RECORDS</button>
+            </div>
+        </div>
+        
+        <!-- Onglet Départs -->
+        <div id="start-tab" class="tab-content active">
+            <div class="chrono-section-single">
+                <div class="chrono-card-full">
+                    <h2>🏊‍♂️ DÉPARTS PISCINE</h2>
+                    <div class="time-display" id="startTime">--:--:--</div>
+                    <div class="input-group-large">
+                        <input type="number" id="startDossard" placeholder="N° de dossard" min="1">
+                        <button class="btn btn-primary btn-large" onclick="enregistrerDepart()">DÉPART ⏱️</button>
+                    </div>
+                    <div class="controls">
+                        <button class="btn btn-secondary" onclick="preparerProchainDepart()">⏰ Préparer départ +30s</button>
+                        <div class="next-start" id="nextStartInfo" style="display: none;">
+                            <strong>Prochain départ prévu :</strong> <span id="nextStartTime"></span>
+                        </div>
+                    </div>
+                    <div class="instructions">
+                        <p><strong>💡 Instructions :</strong></p>
+                        <p>• Saisissez le n° de dossard puis appuyez sur <kbd>Entrée</kbd></p>
+                        <p>• Ou cliquez directement "DÉPART" puis saisissez le n° après</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mini tableau des départs récents -->
+            <div class="mini-records">
+                <h3>🕐 Derniers départs</h3>
+                <div class="mini-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>N° Dossard</th>
+                                <th>Heure</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="startRecordsTable">
+                            <!-- Les derniers départs apparaîtront ici -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Onglet Arrivées -->
+        <div id="finish-tab" class="tab-content">
+            <div class="chrono-section-single">
+                <div class="chrono-card-full">
+                    <h2>🏁 ARRIVÉES</h2>
+                    <div class="time-display" id="finishTime">--:--:--</div>
+                    <div class="input-group-large">
+                        <input type="number" id="finishDossard" placeholder="N° de dossard" min="1">
+                        <button class="btn btn-primary btn-large" onclick="enregistrerArrivee()">ARRIVÉE 🏁</button>
+                    </div>
+                    <div class="controls">
+                        <input type="text" id="tempsManuel" placeholder="HH:MM:SS (saisie manuelle optionnelle)">
+                        <small>Laissez vide pour capturer l'heure actuelle automatiquement</small>
+                    </div>
+                    <div class="instructions">
+                        <p><strong>💡 Instructions :</strong></p>
+                        <p>• Appuyez sur <kbd>Entrée</kbd> pour capturer l'arrivée instantanément</p>
+                        <p>• Le n° de dossard peut être saisi avant ou après</p>
+                        <p>• Pour corriger l'heure, utilisez le champ de saisie manuelle</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mini tableau des arrivées récentes -->
+            <div class="mini-records">
+                <h3>🏁 Dernières arrivées</h3>
+                <div class="mini-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>N° Dossard</th>
+                                <th>Heure</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="finishRecordsTable">
+                            <!-- Les dernières arrivées apparaîtront ici -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Onglet Records -->
+        <div id="records-tab" class="tab-content">
+            <!-- Section de configuration de sauvegarde -->
+            <div class="backup-section">
+                <h3>🛡️ Configuration de Sauvegarde</h3>
+                <div class="backup-config">
+                    <div class="backup-status-area">
+                        <div id="backup-status" class="backup-status">Aucune sauvegarde effectuée</div>
+                        <button class="btn btn-secondary" onclick="restaurerSauvegarde()">📥 Restaurer</button>
+                        <button class="btn btn-secondary" onclick="exporterSauvegardeAuto()">💾 Export Backup</button>
+                    </div>
+                    
+                    <div class="google-sheets-config">
+                        <h4>☁️ Synchronisation entre Chronométreurs</h4>
+                        
+                        <div class="sync-methods">
+                            <div class="sync-method">
+                                <h5>⚡ Système Hybride Recommandé</h5>
+                                <div class="config-inputs">
+                                    <input type="url" id="webhook-url" placeholder="URL de webhook (Apps Script ou autre)" 
+                                           onchange="configurerWebhook()">
+                                    <button class="btn btn-secondary" onclick="testerWebhook()">🔗 Tester</button>
+                                </div>
+                                <div class="failover-status" id="failover-status">
+                                    <small>🛡️ <strong>Triple sécurité :</strong> Webhook → Export auto → CSV de secours</small>
+                                </div>
+                            </div>
+                            
+                            <div class="sync-method">
+                                <h5>📋 Méthode Simple : Copier-Coller</h5>
+                                <button class="btn export-btn" onclick="exporterCSVPourSheets()">📋 Copier CSV</button>
+                                <small>Copiez les données puis collez dans Google Sheets (Ctrl+V)</small>
+                            </div>
+                            
+                            <div class="sync-method">
+                                <h5>📁 Import/Export Fichiers</h5>
+                                <div class="file-buttons">
+                                    <button class="btn btn-secondary" onclick="exporterSauvegardeAuto()">📥 Télécharger JSON</button>
+                                    <input type="file" id="csv-import" accept=".csv" style="display: none;" onchange="handleFileImport(event)">
+                                    <button class="btn btn-secondary" onclick="document.getElementById('csv-import').click()">📤 Importer CSV</button>
+                                </div>
+                                <small>Partagez les fichiers entre les deux postes</small>
+                            </div>
+                            
+                            
+                            <div class="sync-method">
+                                <h5>🔗 Alternatives sans Quotas</h5>
+                                <div class="alternative-services">
+                                    <button class="btn btn-secondary" onclick="window.open('https://webhook.site', '_blank')">🌐 Webhook.site</button>
+                                    <button class="btn btn-secondary" onclick="window.open('https://pipedream.com', '_blank')">⚡ Pipedream</button>
+                                    <button class="btn btn-secondary" onclick="window.open('https://n8n.cloud', '_blank')">🔄 n8n</button>
+                                </div>
+                                <small>Services webhook sans limitations pour usage intensif</small>
+                            </div>
+                            
+                            <div class="sync-method">
+                                <h5>🔗 Webhook Apps Script (Limité)</h5>
+                                <div class="config-inputs">
+                                    <input type="url" id="webhook-url-legacy" placeholder="URL Apps Script (20K requêtes/jour max)" 
+                                           onchange="configurerWebhookLegacy()">
+                                    <button class="btn btn-secondary" onclick="creerAppsScript()">➕ Créer Script</button>
+                                </div>
+                                <small>⚠️ Limité à 20,000 requêtes/jour - OK pour un Aquathlon</small>
+                            </div>
+                        </div>
+                        
+                        <div class="google-sheet-instructions">
+                            <h5>💡 Instructions Google Sheets :</h5>
+                            <ol>
+                                <li>Créez un <a href="https://docs.google.com/spreadsheets/create" target="_blank">nouveau Google Sheet</a></li>
+                                <li>Partagez-le avec l'autre chronométreur</li>
+                                <li>Utilisez "Copier CSV" puis Ctrl+V dans le Sheet</li>
+                                <li>Rafraîchissez régulièrement pour voir les mises à jour</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        <div class="records-section">
+            <div class="records-header">
+                <h2>📊 Enregistrements</h2>
+                <div>
+                    <button class="btn export-btn" onclick="exporterCSV()">📥 Exporter CSV</button>
+                    <button class="btn btn-secondary" onclick="viderDonnees()">🗑️ Vider</button>
+                </div>
+            </div>
+            
+            <div class="records-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N° Dossard</th>
+                            <th>Type</th>
+                            <th>Heure</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsTable">
+                        <!-- Les enregistrements apparaîtront ici -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let records = [];
+        let prochainDepartPrevu = null;
+        let autoSaveEnabled = true;
+        let lastBackupTime = null;
+
+        // Configuration de sauvegarde
+        const BACKUP_CONFIG = {
+            localInterval: 5000,        // Sauvegarde locale toutes les 5 secondes
+            googleSheetsInterval: 15000, // Sync Google Sheets toutes les 15 secondes
+            maxLocalBackups: 50,        // Garder 50 sauvegardes locales maximum
+        };
+
+        // === SYSTÈME DE SAUVEGARDE LOCAL ===
+        
+        // Sauvegarde automatique locale (navigateur)
+        function sauvegardeLocale() {
+            try {
+                const backupData = {
+                    timestamp: new Date().toISOString(),
+                    records: records,
+                    version: '1.0'
+                };
+                
+                // Sauvegarde principale
+                const backupKey = 'aquathlon_backup_' + Date.now();
+                localStorage.setItem('aquathlon_current', JSON.stringify(backupData));
+                localStorage.setItem(backupKey, JSON.stringify(backupData));
+                
+                // Limiter le nombre de sauvegardes
+                cleanOldBackups();
+                
+                lastBackupTime = new Date();
+                updateBackupStatus(`✅ Sauvé localement à ${lastBackupTime.toLocaleTimeString()}`);
+                
+            } catch (error) {
+                console.error('Erreur sauvegarde locale:', error);
+                updateBackupStatus('❌ Erreur sauvegarde locale');
+            }
+        }
+        
+        // Nettoyer les anciennes sauvegardes
+        function cleanOldBackups() {
+            const keys = Object.keys(localStorage);
+            const backupKeys = keys.filter(key => key.startsWith('aquathlon_backup_'))
+                                   .sort()
+                                   .slice(0, -BACKUP_CONFIG.maxLocalBackups);
+            
+            backupKeys.forEach(key => localStorage.removeItem(key));
+        }
+        
+        // Restaurer depuis la sauvegarde locale
+        function restaurerSauvegarde() {
+            try {
+                const savedData = localStorage.getItem('aquathlon_current');
+                if (savedData) {
+                    const backup = JSON.parse(savedData);
+                    if (backup.records && Array.isArray(backup.records)) {
+                        records = backup.records;
+                        updateAllTables();
+                        showAlert(`✅ ${records.length} enregistrements restaurés depuis la sauvegarde locale`, 'success', 3000);
+                        return true;
+                    }
+                }
+                return false;
+            } catch (error) {
+                console.error('Erreur lors de la restauration:', error);
+                showAlert('❌ Erreur lors de la restauration', 'warning', 3000);
+                return false;
+            }
+        }
+
+        // === SYNCHRONISATION MULTI-NIVEAU ===
+        
+        let webhook_url = '';
+        let sync_enabled = false;
+        let failover_methods = {
+            webhook: false,
+            file_sync: false,
+            manual_csv: false
+        };
+        
+        // Configuration robuste avec failover
+        const SYNC_CONFIG = {
+            webhook_timeout: 5000,      // 5s timeout pour webhook
+            retry_attempts: 3,          // 3 tentatives
+            fallback_interval: 30000,   // Fallback toutes les 30s
+            batch_size: 10             // Traiter par lots de 10
+        };
+
+        // Webhook avec gestion d'erreur robuste
+        async function syncViaWebhook() {
+            if (!webhook_url || records.length === 0) return false;
+            
+            try {
+                // Diviser en lots pour éviter les timeouts
+                const batches = [];
+                for (let i = 0; i < records.length; i += SYNC_CONFIG.batch_size) {
+                    batches.push(records.slice(i, i + SYNC_CONFIG.batch_size));
+                }
+                
+                let success_count = 0;
+                for (const batch of batches) {
+                    const success = await sendBatchToWebhook(batch);
+                    if (success) success_count++;
+                    
+                    // Petit délai entre les lots pour éviter la surcharge
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                if (success_count === batches.length) {
+                    updateBackupStatus(`☁️ Webhook sync réussie (${records.length} records en ${batches.length} lots)`);
+                    failover_methods.webhook = true;
+                    return true;
+                } else {
+                    throw new Error(`Seulement ${success_count}/${batches.length} lots synchronisés`);
+                }
+                
+            } catch (error) {
+                console.error('Erreur webhook:', error);
+                updateBackupStatus('❌ Webhook échoué - Basculement vers méthodes de secours');
+                failover_methods.webhook = false;
+                
+                // Déclencher les méthodes de secours
+                await triggerFailoverMethods();
+                return false;
+            }
+        }
+        
+        async function sendBatchToWebhook(batch) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), SYNC_CONFIG.webhook_timeout);
+                
+                const response = await fetch(webhook_url, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        timestamp: new Date().toISOString(),
+                        records: batch,
+                        source: 'aquathlon_chrono',
+                        batch_info: `${batch.length} records`
+                    }),
+                    signal: controller.signal,
+                    mode: 'cors' // Ajout explicite du mode CORS
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('Réponse webhook:', result);
+                    return true;
+                } else {
+                    console.error('Erreur HTTP:', response.status, response.statusText);
+                    return false;
+                }
+                
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.error('Timeout webhook');
+                } else {
+                    console.error('Erreur envoi batch:', error);
+                }
+                return false;
+            }
+        }
+        
+        // Méthodes de secours automatiques
+        async function triggerFailoverMethods() {
+            // 1. Export automatique de fichier
+            if (!failover_methods.file_sync) {
+                exporterSauvegardeAuto();
+                failover_methods.file_sync = true;
+                updateBackupStatus('💾 Fichier de secours créé automatiquement');
+            }
+            
+            // 2. Préparer CSV pour copier-coller facile
+            if (!failover_methods.manual_csv) {
+                await exporterCSVPourSheets();
+                failover_methods.manual_csv = true;
+                updateBackupStatus('📋 CSV de secours préparé dans le presse-papiers');
+            }
+        }
+        
+        // Synchronisation avec détection intelligente de conflit
+        let last_sync_hash = '';
+        
+        function generateDataHash() {
+            // Créer un hash simple des données pour détecter les changements
+            const data_string = records.map(r => `${r.id}-${r.timestamp}`).join('|');
+            return btoa(data_string).substring(0, 16);
+        }
+        
+        async function intelligentSync() {
+            const current_hash = generateDataHash();
+            
+            // Ne synchroniser que si les données ont changé
+            if (current_hash === last_sync_hash && records.length > 0) {
+                return; // Pas de changements
+            }
+            
+            last_sync_hash = current_hash;
+            
+            // Essayer webhook d'abord, puis basculer sur les alternatives
+            const webhook_success = await syncViaWebhook();
+            
+            if (!webhook_success) {
+                // Basculement automatique sur les méthodes de secours
+                updateBackupStatus('🔄 Basculement automatique sur méthodes de secours...');
+            }
+        }
+        
+        // Export CSV automatique pour copier-coller dans Google Sheets
+        function exporterCSVPourSheets() {
+            if (records.length === 0) {
+                showAlert('Aucune donnée à exporter', 'warning', 2000);
+                return;
+            }
+            
+            // Créer le CSV avec en-têtes
+            const headers = 'Timestamp,N° Dossard,Type,Heure';
+            const csvContent = records
+                .sort((a, b) => a.timestamp - b.timestamp)
+                .map(record => {
+                    const timestamp = new Date(record.timestamp).toISOString();
+                    return `${timestamp},${record.dossard},${record.type},${record.heure}`;
+                })
+                .join('\n');
+            
+            const fullCSV = headers + '\n' + csvContent;
+            
+            // Copier dans le presse-papiers
+            navigator.clipboard.writeText(fullCSV).then(() => {
+                showAlert('✅ CSV copié ! Collez-le dans votre Google Sheet (Ctrl+V)', 'success', 4000);
+            }).catch(() => {
+                // Fallback : télécharger le fichier
+                downloadCSV(fullCSV);
+            });
+        }
+        
+        function downloadCSV(csvContent) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `aquathlon_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showAlert('📁 Fichier CSV téléchargé !', 'success', 2000);
+        }
+        
+        // Import depuis CSV (pour synchronisation manuelle)
+        function importerCSV(csvText) {
+            try {
+                const lines = csvText.trim().split('\n');
+                if (lines.length < 2) return false;
+                
+                const headers = lines[0].split(',');
+                const newRecords = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',');
+                    if (values.length >= 4) {
+                        newRecords.push({
+                            id: Date.now() + i,
+                            dossard: values[1],
+                            type: values[2],
+                            heure: values[3],
+                            timestamp: new Date(values[0]).getTime()
+                        });
+                    }
+                }
+                
+                if (newRecords.length > 0) {
+                    // Fusionner avec les records existants (éviter les doublons)
+                    const existingIds = new Set(records.map(r => `${r.dossard}-${r.type}-${r.heure}`));
+                    const uniqueNewRecords = newRecords.filter(r => 
+                        !existingIds.has(`${r.dossard}-${r.type}-${r.heure}`)
+                    );
+                    
+                    records = [...records, ...uniqueNewRecords];
+                    updateAllTables();
+                    triggerAutoSave();
+                    
+                    showAlert(`✅ ${uniqueNewRecords.length} nouveaux enregistrements importés`, 'success', 3000);
+                    return true;
+                }
+            } catch (error) {
+                console.error('Erreur import CSV:', error);
+                showAlert('❌ Erreur lors de l\'import CSV', 'warning', 2000);
+            }
+            return false;
+        }
+        
+        // === EXPORT AUTOMATIQUE DE FICHIERS ===
+        
+        // Téléchargement automatique de sauvegarde
+        function exporterSauvegardeAuto() {
+            if (records.length === 0) return;
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const data = {
+                exportTime: new Date().toISOString(),
+                records: records,
+                totalRecords: records.length
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], 
+                                { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            a.href = url;
+            a.download = `aquathlon_backup_${timestamp}.json`;
+            a.style.display = 'none';
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // === INTERFACE DE CONFIGURATION ===
+        
+        function updateBackupStatus(message) {
+            const statusElement = document.getElementById('backup-status');
+            if (statusElement) {
+                statusElement.textContent = message;
+                statusElement.className = 'backup-status ' + 
+                    (message.includes('❌') ? 'error' : 
+                     message.includes('☁️') ? 'cloud' : 'success');
+            }
+        }
+
+        // Mise à jour de l'heure en temps réel
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('fr-FR');
+            document.getElementById('startTime').textContent = timeString;
+            document.getElementById('finishTime').textContent = timeString;
+        }
+
+        // Gestion des onglets
+        let currentTab = 'start';
+        
+        function switchTab(tabName) {
+            // Masquer tous les contenus
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Désactiver tous les boutons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Activer l'onglet sélectionné
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            currentTab = tabName;
+            
+            // Focus automatique sur le bon champ
+            setTimeout(() => {
+                if (tabName === 'start') {
+                    document.getElementById('startDossard').focus();
+                } else if (tabName === 'finish') {
+                    document.getElementById('finishDossard').focus();
+                }
+            }, 100);
+        }
+
+        // Démarrer la mise à jour du temps
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Fonction pour afficher les alertes
+        function showAlert(message, type = 'success', duration = 1500) {
+            const alertContainer = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertContainer.innerHTML = '';
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, duration);
+        }
+
+        // Enregistrer un départ
+        function enregistrerDepart() {
+            const dossard = document.getElementById('startDossard').value;
+            const now = new Date();
+            const temps = now.toLocaleTimeString('fr-FR');
+            
+            records.push({
+                id: Date.now(),
+                dossard: dossard || 'À saisir',
+                type: 'Départ',
+                heure: temps,
+                timestamp: now.getTime()
+            });
+            
+            updateAllTables();
+            triggerAutoSave();
+            document.getElementById('startDossard').value = '';
+            document.getElementById('startDossard').focus();
+            showAlert(`Départ enregistré : ${dossard || 'dossard à saisir'} à ${temps}`, 'success', 1200);
+        }
+
+        // Enregistrer une arrivée
+        function enregistrerArrivee() {
+            const dossard = document.getElementById('finishDossard').value;
+            const tempsManuel = document.getElementById('tempsManuel').value;
+            
+            let temps, timestamp;
+            if (tempsManuel && /^\d{2}:\d{2}:\d{2}$/.test(tempsManuel)) {
+                temps = tempsManuel;
+                const [h, m, s] = tempsManuel.split(':').map(Number);
+                const date = new Date();
+                date.setHours(h, m, s, 0);
+                timestamp = date.getTime();
+            } else {
+                const now = new Date();
+                temps = now.toLocaleTimeString('fr-FR');
+                timestamp = now.getTime();
+            }
+            
+            records.push({
+                id: Date.now(),
+                dossard: dossard || 'À saisir',
+                type: 'Arrivée',
+                heure: temps,
+                timestamp: timestamp
+            });
+            
+            updateAllTables();
+            triggerAutoSave();
+            document.getElementById('finishDossard').value = '';
+            document.getElementById('tempsManuel').value = '';
+            document.getElementById('finishDossard').focus();
+            showAlert(`Arrivée enregistrée : ${dossard || 'dossard à saisir'} à ${temps}`, 'success', 800);
+        }
+
+        // Déclencher la sauvegarde automatique
+        function triggerAutoSave() {
+            if (autoSaveEnabled) {
+                sauvegardeLocale();
+                
+                // Synchronisation intelligente avec failover
+                intelligentSync();
+            }
+        }
+
+        // Préparer le prochain départ (+30s)
+        function preparerProchainDepart() {
+            const now = new Date();
+            prochainDepartPrevu = new Date(now.getTime() + 30000); // +30 secondes
+            const nextStartInfo = document.getElementById('nextStartInfo');
+            const nextStartTime = document.getElementById('nextStartTime');
+            
+            nextStartTime.textContent = prochainDepartPrevu.toLocaleTimeString('fr-FR');
+            nextStartInfo.style.display = 'block';
+            
+            showAlert(`Prochain départ prévu à ${prochainDepartPrevu.toLocaleTimeString('fr-FR')}`);
+        }
+
+        // Mettre à jour tous les tableaux
+        function updateAllTables() {
+            updateRecordsTable();
+            updateStartRecordsTable();
+            updateFinishRecordsTable();
+        }
+
+        // Mettre à jour le mini tableau des départs
+        function updateStartRecordsTable() {
+            const tbody = document.getElementById('startRecordsTable');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const startRecords = records
+                .filter(record => record.type === 'Départ')
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .slice(0, 10); // 10 derniers départs
+            
+            startRecords.forEach(record => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${record.dossard}</td>
+                    <td>${record.heure}</td>
+                    <td>
+                        <button class="btn edit-btn" onclick="modifierRecord(${record.id})">✏️</button>
+                        <button class="btn delete-btn" onclick="supprimerRecord(${record.id})">🗑️</button>
+                    </td>
+                `;
+            });
+        }
+
+        // Mettre à jour le mini tableau des arrivées
+        function updateFinishRecordsTable() {
+            const tbody = document.getElementById('finishRecordsTable');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            const finishRecords = records
+                .filter(record => record.type === 'Arrivée')
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .slice(0, 10); // 10 dernières arrivées
+            
+            finishRecords.forEach(record => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${record.dossard}</td>
+                    <td>${record.heure}</td>
+                    <td>
+                        <button class="btn edit-btn" onclick="modifierRecord(${record.id})">✏️</button>
+                        <button class="btn delete-btn" onclick="supprimerRecord(${record.id})">🗑️</button>
+                    </td>
+                `;
+            });
+        }
+        // Mettre à jour la table complète des enregistrements (onglet Records)
+        function updateRecordsTable() {
+            const tbody = document.getElementById('recordsTable');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            // Trier par timestamp décroissant (plus récent en premier)
+            const sortedRecords = records.sort((a, b) => b.timestamp - a.timestamp);
+            
+            sortedRecords.forEach(record => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${record.dossard}</td>
+                    <td><span class="status ${record.type === 'Départ' ? 'status-depart' : 'status-arrivee'}">${record.type}</span></td>
+                    <td>${record.heure}</td>
+                    <td>
+                        <button class="btn edit-btn" onclick="modifierRecord(${record.id})">✏️</button>
+                        <button class="btn delete-btn" onclick="supprimerRecord(${record.id})">🗑️</button>
+                    </td>
+                `;
+            });
+        }
+
+        // Modifier un enregistrement
+        function modifierRecord(id) {
+            const record = records.find(r => r.id === id);
+            if (record) {
+                const nouveauDossard = prompt('Nouveau numéro de dossard:', record.dossard);
+                const nouvelleHeure = prompt('Nouvelle heure (HH:MM:SS):', record.heure);
+                
+                if (nouveauDossard !== null) record.dossard = nouveauDossard;
+                if (nouvelleHeure !== null && /^\d{2}:\d{2}:\d{2}$/.test(nouvelleHeure)) {
+                    record.heure = nouvelleHeure;
+                }
+                
+                updateAllTables();
+                triggerAutoSave();
+                showAlert('Enregistrement modifié', 'success', 1000);
+            }
+        }
+
+        // Supprimer un enregistrement
+        function supprimerRecord(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cet enregistrement ?')) {
+                records = records.filter(r => r.id !== id);
+                updateAllTables();
+                triggerAutoSave();
+                showAlert('Enregistrement supprimé', 'success', 1000);
+            }
+        }
+
+        // Exporter en CSV
+        function exporterCSV() {
+            if (records.length === 0) {
+                showAlert('Aucune donnée à exporter', 'warning');
+                return;
+            }
+            
+            const headers = 'N° Dossard,Type,Heure\n';
+            const csvContent = records
+                .sort((a, b) => a.timestamp - b.timestamp)
+                .map(record => `${record.dossard},${record.type},${record.heure}`)
+                .join('\n');
+            
+            const blob = new Blob([headers + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `aquathlon_chronos_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showAlert('Export CSV téléchargé !');
+        }
+
+        // Vider toutes les données
+        function viderDonnees() {
+            if (confirm('Êtes-vous sûr de vouloir supprimer tous les enregistrements ?')) {
+                records = [];
+                updateAllTables();
+                triggerAutoSave();
+                showAlert('Toutes les données ont été supprimées', 'success', 1500);
+            }
+        }
+
+        // === FONCTIONS DE CONFIGURATION ===
+        
+        function configurerWebhook() {
+            webhook_url = document.getElementById('webhook-url').value;
+            if (webhook_url) {
+                sync_enabled = true;
+                updateBackupStatus('🛡️ Système hybride activé avec triple sécurité');
+                
+                // Réinitialiser les flags de failover
+                failover_methods = {
+                    webhook: false,
+                    file_sync: false,
+                    manual_csv: false
+                };
+                
+                // Démarrer la synchronisation intelligente
+                if (!window.intelligentSyncInterval) {
+                    window.intelligentSyncInterval = setInterval(intelligentSync, 15000);
+                }
+            } else {
+                sync_enabled = false;
+            }
+        }
+        
+        function configurerWebhookLegacy() {
+            webhook_url = document.getElementById('webhook-url-legacy').value;
+            configurerWebhook(); // Réutiliser la même logique
+        }
+        
+        function creerAppsScript() {
+            const url = 'https://script.google.com';
+            window.open(url, '_blank');
+            showAlert('Apps Script ouvert. Attention aux quotas : 20K requêtes/jour maximum !', 'success', 4000);
+        }
+
+        // Fonctions pour résoudre le problème CORS
+        function downloadHTMLFile() {
+            // Créer le contenu HTML complet
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            a.href = url;
+            a.download = 'aquathlon-chrono.html';
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            showAlert('📥 Fichier HTML téléchargé ! Uploadez-le sur un hébergeur web.', 'success', 4000);
+        }
+        
+        function openCorsInstructions() {
+            const instructions = `
+🚨 PROBLÈME CORS DÉTECTÉ
+
+Le fichier HTML ne peut pas être ouvert directement (file://)
+Il doit être servi par un serveur web.
+
+📋 SOLUTIONS :
+
+1. 🌐 NETLIFY DROP (Plus simple)
+   - Allez sur: https://netlify.app/drop
+   - Glissez le fichier HTML téléchargé
+   - Utilisez l'URL générée
+
+2. 🖥️ SERVEUR LOCAL
+   - Python: python -m http.server 8000
+   - Node.js: npx serve .
+   - Puis: http://localhost:8000
+
+3. 📱 GITHUB PAGES
+   - Créez un repo GitHub
+   - Uploadez comme index.html
+   - Activez Pages dans Settings
+
+Une fois hébergé, le webhook Apps Script fonctionnera !
+            `;
+            
+            if (confirm(instructions + '\n\nOuvrir Netlify Drop maintenant ?')) {
+                window.open('https://netlify.app/drop', '_blank');
+            }
+        }
+        
+        // Vérifier le statut de connexion et la plateforme
+        function checkConnectionStatus() {
+            const statusEl = document.getElementById('connection-status');
+            const indicatorEl = document.getElementById('connection-indicator');
+            const detailsEl = document.getElementById('connection-details');
+            
+            if (navigator.onLine) {
+                statusEl.className = 'connection-status online';
+                indicatorEl.textContent = '🌐 En ligne';
+                
+                // Détecter la plateforme d'hébergement
+                const hostname = window.location.hostname;
+                if (hostname.includes('github.io')) {
+                    detailsEl.textContent = '✅ Hébergé sur GitHub Pages - Webhook disponible';
+                } else if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                    detailsEl.textContent = '🖥️ Serveur local - Webhook disponible';
+                } else if (hostname.includes('netlify')) {
+                    detailsEl.textContent = '✅ Hébergé sur Netlify - Webhook disponible';
+                } else if (hostname) {
+                    detailsEl.textContent = `✅ Hébergé sur ${hostname} - Webhook disponible`;
+                } else {
+                    detailsEl.textContent = '⚠️ Hébergement détecté - Testez le webhook';
+                }
+            } else {
+                statusEl.className = 'connection-status offline';
+                indicatorEl.textContent = '📡 Hors ligne';
+                detailsEl.textContent = '⚠️ Pas de connexion - Seule la sauvegarde locale fonctionne';
+            }
+        }
+        
+        // Détecter si on est en file:// et afficher l'avertissement
+        function detectCorsIssue() {
+            if (window.location.protocol === 'file:') {
+                const statusEl = document.getElementById('connection-status');
+                const indicatorEl = document.getElementById('connection-indicator');
+                const detailsEl = document.getElementById('connection-details');
+                
+                statusEl.className = 'connection-status offline';
+                indicatorEl.textContent = '❌ Fichier local';
+                detailsEl.textContent = '⚠️ Hébergez sur GitHub Pages ou serveur web pour utiliser les webhooks';
+                
+                updateBackupStatus('⚠️ CORS: Fichier doit être hébergé sur un serveur web');
+                
+                // Afficher un avertissement visible
+                setTimeout(() => {
+                    if (records.length === 0) {
+                        showAlert('⚠️ Pour les webhooks, utilisez GitHub Pages ou un serveur web !', 'warning', 6000);
+                    }
+                }, 3000);
+            } else {
+                checkConnectionStatus();
+            }
+        }
+        
+        function testerWebhook() {
+            if (!webhook_url) {
+                showAlert('Veuillez d\'abord configurer l\'URL du webhook', 'warning', 3000);
+                return;
+            }
+            
+            updateBackupStatus('🔄 Test webhook...');
+            syncViaWebhook();
+        }
+        
+        // Gestion de l'import de fichiers
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                
+                if (file.name.endsWith('.csv')) {
+                    importerCSV(content);
+                } else if (file.name.endsWith('.json')) {
+                    try {
+                        const jsonData = JSON.parse(content);
+                        if (jsonData.records && Array.isArray(jsonData.records)) {
+                            records = [...records, ...jsonData.records];
+                            updateAllTables();
+                            triggerAutoSave();
+                            showAlert(`✅ ${jsonData.records.length} enregistrements importés depuis JSON`, 'success', 3000);
+                        }
+                    } catch (error) {
+                        showAlert('❌ Erreur lors de l\'import JSON', 'warning', 2000);
+                    }
+                }
+            };
+            
+            reader.readAsText(file);
+            // Réinitialiser l'input pour permettre de sélectionner le même fichier
+            event.target.value = '';
+        }
+
+        // === INITIALISATION ET TIMERS ===
+        
+        // Démarrer les sauvegardes automatiques
+        function startAutoBackup() {
+            // Sauvegarde locale toutes les 5 secondes si des données
+            setInterval(() => {
+                if (records.length > 0 && autoSaveEnabled) {
+                    sauvegardeLocale();
+                }
+            }, BACKUP_CONFIG.localInterval);
+            
+            // Tentative de restauration au démarrage
+            setTimeout(() => {
+                if (records.length === 0) {
+                    restaurerSauvegarde();
+                }
+            }, 1000);
+        }
+
+        // Gestion des touches du clavier
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                const activeElement = document.activeElement;
+                
+                // Onglet départs
+                if (currentTab === 'start') {
+                    if (activeElement.id === 'startDossard' || activeElement.tagName !== 'INPUT') {
+                        event.preventDefault();
+                        enregistrerDepart();
+                    }
+                }
+                // Onglet arrivées
+                else if (currentTab === 'finish') {
+                    if (activeElement.id === 'finishDossard' || activeElement.id === 'tempsManuel' || activeElement.tagName !== 'INPUT') {
+                        event.preventDefault();
+                        enregistrerArrivee();
+                    }
+                }
+            }
+        });
+
+        // Focus automatique au chargement et changement d'onglet
+        window.onload = function() {
+            document.getElementById('startDossard').focus();
+            startAutoBackup();
+            detectCorsIssue();
+            
+            // Restaurer automatiquement si des données existent
+            if (records.length === 0) {
+                setTimeout(restaurerSauvegarde, 500);
+            }
+        };
+    </script>
+</body>
+</html>

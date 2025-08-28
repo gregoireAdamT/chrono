@@ -1,0 +1,6 @@
+Google sheet
+Sheet ID: 1Pmow1wBR3D1paMLNWNDj6mPaPOiFXfw2iAHNkUg6f2A
+
+Webhook
+Deployment: IDAKfycbw48xgfgTLAbIpAx2TkpCCu4AKXcrTz_WauR3hwFh-4MGHlBRReQjASWzOcB5O4i0fxtw
+Web app: https://script.google.com/macros/s/AKfycbw48xgfgTLAbIpAx2TkpCCu4AKXcrTz_WauR3hwFh-4MGHlBRReQjASWzOcB5O4i0fxtw/exec
