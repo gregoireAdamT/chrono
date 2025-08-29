@@ -7,15 +7,16 @@ let sync_enabled = false;
 
 // Configuration de sauvegarde
 const BACKUP_CONFIG = {
-  localInterval: 5000,        // Sauvegarde locale toutes les 5 secondes
-  webhook_timeout: 5000,      // 5s timeout pour webhook
+  localInterval: 5000, // Sauvegarde locale toutes les 5 secondes
+  webhook_timeout: 5000, // 5s timeout pour webhook
 };
 
 // Webhook URL set by default
-const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbw48xgfgTLAbIpAx2TkpCCu4AKXcrTz_WauR3hwFh-4MGHlBRReQjASWzOcB5O4i0fxtw/exec';
+const DEFAULT_WEBHOOK_URL =
+  'https://script.google.com/macros/s/AKfycbw48xgfgTLAbIpAx2TkpCCu4AKXcrTz_WauR3hwFh-4MGHlBRReQjASWzOcB5O4i0fxtw/exec';
 
 // When page loads, populate the input
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   const webhookInput = document.getElementById('webhook-url');
   if (webhookInput && !webhookInput.value) {
     webhookInput.value = DEFAULT_WEBHOOK_URL;
@@ -23,10 +24,9 @@ document.addEventListener('DOMContentLoaded', function() {
   configurerWebhook();
 });
 
-
 // Gestion des onglets
 let currentTab = 'start';
-
+/* 
 function switchTab(tabName) {
   // Masquer tous les contenus
   document.querySelectorAll('.tab-content').forEach(content => {
@@ -53,6 +53,36 @@ function switchTab(tabName) {
     }
   }, 100);
 }
+ */
+
+function switchTab(tabName) {
+  // Masquer tous les contenus
+  document.querySelectorAll('.tab-content').forEach((content) => {
+    content.classList.remove('active');
+  });
+
+  // Désactiver tous les boutons
+  document.querySelectorAll('.tab-btn').forEach((btn) => {
+    btn.classList.remove('active');
+  });
+
+  // Activer l'onglet sélectionné
+  document.getElementById(tabName + '-tab').classList.add('active');
+
+  // ✅ Trouver le bon bouton par data-attribute ou classe
+  //document.querySelector(`[onclick*="${tabName}"]`).classList.add('active');
+  document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+  currentTab = tabName;
+
+  setTimeout(() => {
+    if (tabName === 'start') {
+      document.getElementById('startDossard').focus();
+    } else if (tabName === 'finish') {
+      document.getElementById('finishDossard').focus();
+    }
+  }, 100);
+}
 
 // Mise à jour de l'heure en temps réel
 function updateTime() {
@@ -65,29 +95,29 @@ function updateTime() {
 // Fonction pour afficher les notifications toast (latérales)
 function showToast(message, type = 'success', duration = 1500) {
   const toastContainer = document.getElementById('toast-container');
-    
+
   // Créer le toast
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-    
+
   // Icône selon le type
   let icon = '✅';
   if (type === 'warning') icon = '⚠️';
   if (type === 'error') icon = '❌';
-    
+
   toast.innerHTML = `
         <span class="toast-icon">${icon}</span>
         <span class="toast-message">${message}</span>
         <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
     `;
-    
+
   toastContainer.appendChild(toast);
-    
+
   // Animation d'entrée
   setTimeout(() => {
     toast.classList.add('show');
   }, 100);
-    
+
   // Suppression automatique
   setTimeout(() => {
     removeToast(toast);
@@ -96,7 +126,7 @@ function showToast(message, type = 'success', duration = 1500) {
 
 function removeToast(toast) {
   if (!toast) return;
-    
+
   toast.classList.remove('show');
   setTimeout(() => {
     if (toast.parentElement) {
@@ -118,12 +148,11 @@ function sauvegardeLocale() {
     const backupData = {
       timestamp: new Date().toISOString(),
       records: records,
-      version: '1.0'
+      version: '1.0',
     };
-        
+
     localStorage.setItem('aquathlon_current', JSON.stringify(backupData));
     lastBackupTime = new Date();
-        
   } catch (error) {
     console.error('Erreur sauvegarde locale:', error);
   }
@@ -137,7 +166,11 @@ function restaurerSauvegarde() {
       if (backup.records && Array.isArray(backup.records)) {
         records = backup.records;
         updateAllTables();
-        showAlert(`✅ ${records.length} enregistrements restaurés`, 'success', 3000);
+        showAlert(
+          `✅ ${records.length} enregistrements restaurés`,
+          'success',
+          3000
+        );
         return true;
       }
     }
@@ -157,12 +190,12 @@ async function sendToWebhookNoCORS(data) {
     console.log('=== POST FORM-DATA ===');
     const formData = new URLSearchParams();
     formData.append('data', JSON.stringify(data));
-        
+
     const response = await fetch(webhook_url, {
       method: 'POST',
-      body: formData
+      body: formData,
     });
-        
+
     if (response.ok) {
       const result = await response.text();
       console.log('POST form-data success:', result);
@@ -171,7 +204,6 @@ async function sendToWebhookNoCORS(data) {
       console.error('POST form-data HTTP error:', response.status);
       return false;
     }
-        
   } catch (error) {
     console.error('POST form-data error:', error);
     return false;
@@ -184,13 +216,13 @@ async function sendToWebhookViaGET(data) {
     console.log('=== GET PARAMS ===');
     const params = new URLSearchParams({
       data: JSON.stringify(data),
-      action: 'add_records'
+      action: 'add_records',
     });
-        
+
     const response = await fetch(`${webhook_url}?${params.toString()}`, {
-      method: 'GET'
+      method: 'GET',
     });
-        
+
     if (response.ok) {
       const result = await response.text();
       console.log('GET success:', result);
@@ -199,7 +231,6 @@ async function sendToWebhookViaGET(data) {
       console.error('GET HTTP error:', response.status);
       return false;
     }
-        
   } catch (error) {
     console.error('GET error:', error);
     return false;
@@ -213,26 +244,28 @@ function sendViaImageTracking(data) {
     const img = new Image();
     const params = new URLSearchParams({
       data: JSON.stringify(data),
-      method: 'image'
+      method: 'image',
     });
-        
+
     let timeout = setTimeout(() => {
       console.log('Image tracking timeout (mais peut avoir fonctionné)');
       resolve(true);
     }, 10000);
-        
+
     img.onload = () => {
       clearTimeout(timeout);
       console.log('Image tracking success (onload)');
       resolve(true);
     };
-        
+
     img.onerror = () => {
       clearTimeout(timeout);
-      console.log('Image tracking "error" (mais peut avoir fonctionné côté serveur)');
+      console.log(
+        'Image tracking "error" (mais peut avoir fonctionné côté serveur)'
+      );
       resolve(true);
     };
-        
+
     img.src = `${webhook_url}?${params.toString()}&t=${Date.now()}`;
     console.log('Image tracking URL:', img.src);
   });
@@ -242,21 +275,23 @@ function sendViaImageTracking(data) {
 
 async function testStep1() {
   if (!webhook_url) {
-    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
+    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
     return;
   }
-    
+
   console.log('=== TEST ÉTAPE 1: POST FORM-DATA ===');
   updateBackupStatus('🔄 Test POST form-data...');
-    
+
   const testData = {
-    records: [{
-      dossard: 'TEST1',
-      type: 'Test Form-Data',
-      heure: new Date().toLocaleTimeString()
-    }]
+    records: [
+      {
+        dossard: 'TEST1',
+        type: 'Test Form-Data',
+        heure: new Date().toLocaleTimeString(),
+      },
+    ],
   };
-    
+
   try {
     const success = await sendToWebhookNoCORS(testData);
     if (success) {
@@ -275,21 +310,23 @@ async function testStep1() {
 
 async function testStep2() {
   if (!webhook_url) {
-    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
+    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
     return;
   }
-    
+
   console.log('=== TEST ÉTAPE 2: GET PARAMS ===');
   updateBackupStatus('🔄 Test GET params...');
-    
+
   const testData = {
-    records: [{
-      dossard: 'TEST2',
-      type: 'Test GET',
-      heure: new Date().toLocaleTimeString()
-    }]
+    records: [
+      {
+        dossard: 'TEST2',
+        type: 'Test GET',
+        heure: new Date().toLocaleTimeString(),
+      },
+    ],
   };
-    
+
   try {
     const success = await sendToWebhookViaGET(testData);
     if (success) {
@@ -308,25 +345,33 @@ async function testStep2() {
 
 async function testStep3() {
   if (!webhook_url) {
-    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
+    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
     return;
   }
-    
+
   console.log('=== TEST ÉTAPE 3: IMAGE TRACKING ===');
   updateBackupStatus('🔄 Test image tracking...');
-    
+
   const testData = {
-    records: [{
-      dossard: 'TEST3',
-      type: 'Test Image',
-      heure: new Date().toLocaleTimeString()
-    }]
+    records: [
+      {
+        dossard: 'TEST3',
+        type: 'Test Image',
+        heure: new Date().toLocaleTimeString(),
+      },
+    ],
   };
-    
+
   try {
     await sendViaImageTracking(testData);
-    updateBackupStatus('✅ Image tracking tenté (vérifiez dans le Google Sheet)');
-    showAlert('✅ Méthode 3 (Image) tentée - vérifiez le Google Sheet !', 'success', 4000);
+    updateBackupStatus(
+      '✅ Image tracking tenté (vérifiez dans le Google Sheet)'
+    );
+    showAlert(
+      '✅ Méthode 3 (Image) tentée - vérifiez le Google Sheet !',
+      'success',
+      4000
+    );
   } catch (error) {
     console.error('Erreur test 3:', error);
     updateBackupStatus('❌ Image tracking erreur: ' + error.message);
@@ -349,9 +394,13 @@ function updateBackupStatus(message) {
   const statusElement = document.getElementById('backup-status');
   if (statusElement) {
     statusElement.textContent = message;
-    statusElement.className = 'backup-status ' + 
-            (message.includes('❌') ? 'error' : 
-              message.includes('☁️') ? 'cloud' : 'success');
+    statusElement.className =
+      'backup-status ' +
+      (message.includes('❌')
+        ? 'error'
+        : message.includes('☁️')
+          ? 'cloud'
+          : 'success');
   }
 }
 
@@ -363,20 +412,20 @@ function enregistrerDepart() {
   const dossard = document.getElementById('startDossard').value;
   const now = new Date();
   const temps = now.toLocaleTimeString('fr-FR');
-    
+
   records.push({
     id: Date.now(),
     dossard: dossard || 'À saisir',
     type: 'Départ',
     heure: temps,
-    timestamp: now.getTime()
+    timestamp: now.getTime(),
   });
-    
+
   updateAllTables();
   triggerAutoSave();
   document.getElementById('startDossard').value = '';
   document.getElementById('startDossard').focus();
-    
+
   // Toast rapide pour les départs
   showToast(`🏊‍♂️ Départ ${dossard || 'dossard à saisir'}`, 'success', 1000);
 }
@@ -385,25 +434,25 @@ function enregistrerArrivee() {
   const dossard = document.getElementById('finishDossard').value;
   const now = new Date();
   const temps = now.toLocaleTimeString('fr-FR');
-    
+
   records.push({
     id: Date.now(),
     dossard: dossard || 'À saisir',
     type: 'Arrivée', // VÉRIFICATION: Bien "Arrivée" avec accent
     heure: temps,
-    timestamp: now.getTime()
+    timestamp: now.getTime(),
   });
-    
+
   // DEBUG: Vérifier le record créé
   const dernierRecord = records[records.length - 1];
   console.log('🐛 DEBUG - Record arrivée créé:', dernierRecord);
   console.log('🐛 DEBUG - Type exact:', `"${dernierRecord.type}"`);
-    
+
   updateAllTables();
   triggerAutoSave();
   document.getElementById('finishDossard').value = '';
   document.getElementById('finishDossard').focus();
-    
+
   // Toast très rapide pour les arrivées (plus critique)
   showToast(`🏁 Arrivée ${dossard || 'dossard à saisir'}`, 'success', 800);
 }
@@ -413,26 +462,31 @@ let lastSyncCount = 0; // Compteur pour la sync incrémentale
 // Synchronisation incrémentale - AVEC DEBUG COMPLET
 async function syncViaWebhook() {
   if (!webhook_url || records.length === 0) return false;
-    
+
   console.log('🔍 DEBUG SYNC - État actuel:');
   console.log('   - records.length:', records.length);
   console.log('   - lastSyncCount:', lastSyncCount);
-  console.log('   - Derniers records:', records.slice(-3).map(r => `${r.type} ${r.dossard}`));
-    
+  console.log(
+    '   - Derniers records:',
+    records.slice(-3).map((r) => `${r.type} ${r.dossard}`)
+  );
+
   // CORRECTION: Ne synchroniser que le DERNIER record ajouté
   if (records.length <= lastSyncCount) {
     console.log('✅ Aucun nouveau record à synchroniser');
     return true;
   }
-    
+
   // Prendre seulement le(s) nouveau(x) record(s)
   //const nbRecords = records.length - lastSyncCount;
   const newRecords = records.slice(0, 1);
 
-    
   console.log(`🚀 SYNC INCRÉMENTALE - ${newRecords.length} nouveaux records`);
-  console.log('🔍 Records à synchroniser:', newRecords.map(r => `${r.type} ${r.dossard} à ${r.heure}`));
-    
+  console.log(
+    '🔍 Records à synchroniser:',
+    newRecords.map((r) => `${r.type} ${r.dossard} à ${r.heure}`)
+  );
+
   try {
     const data = {
       timestamp: new Date().toISOString(),
@@ -443,41 +497,48 @@ async function syncViaWebhook() {
       debugInfo: {
         lastSyncCount: lastSyncCount,
         totalRecords: records.length,
-        newCount: newRecords.length
-      }
+        newCount: newRecords.length,
+      },
     };
-        
+
     // Essayer les 3 méthodes dans l'ordre
     let success = await sendToWebhookNoCORS(data);
     if (success) {
       const oldLastSyncCount = lastSyncCount;
-      lastSyncCount = records.length; 
-      updateBackupStatus(`☁️ Sync incrémentale POST OK (+${newRecords.length})`);
-      console.log(`✅ Sync POST réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`);
-            
+      lastSyncCount = records.length;
+      updateBackupStatus(
+        `☁️ Sync incrémentale POST OK (+${newRecords.length})`
+      );
+      console.log(
+        `✅ Sync POST réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`
+      );
+
       // Sauvegarder immédiatement pour ne pas perdre le compteur
       sauvegardeLocale();
       return true;
     }
-        
+
     success = await sendToWebhookViaGET(data);
     if (success) {
       const oldLastSyncCount = lastSyncCount;
       lastSyncCount = records.length;
       updateBackupStatus(`☁️ Sync incrémentale GET OK (+${newRecords.length})`);
-      console.log(`✅ Sync GET réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`);
+      console.log(
+        `✅ Sync GET réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`
+      );
       sauvegardeLocale();
       return true;
     }
-        
+
     await sendViaImageTracking(data);
     const oldLastSyncCount = lastSyncCount;
     lastSyncCount = records.length;
     updateBackupStatus(`☁️ Sync incrémentale image OK (+${newRecords.length})`);
-    console.log(`✅ Sync IMAGE réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`);
+    console.log(
+      `✅ Sync IMAGE réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`
+    );
     sauvegardeLocale();
     return true;
-        
   } catch (error) {
     console.error('❌ Erreur sync incrémentale:', error);
     updateBackupStatus('❌ Sync incrémentale échouée');
@@ -488,7 +549,7 @@ async function syncViaWebhook() {
 function triggerAutoSave() {
   if (autoSaveEnabled) {
     sauvegardeLocale();
-        
+
     // Synchronisation incrémentale avec webhook
     if (sync_enabled && webhook_url) {
       console.log('Déclenchement sync incrémentale...');
@@ -508,15 +569,15 @@ function updateAllTables() {
 function updateStartRecordsTable() {
   const tbody = document.getElementById('startRecordsTable');
   if (!tbody) return;
-    
+
   tbody.innerHTML = '';
-    
+
   const startRecords = records
-    .filter(record => record.type === 'Départ')
+    .filter((record) => record.type === 'Départ')
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, 10);
-    
-  startRecords.forEach(record => {
+
+  startRecords.forEach((record) => {
     const row = tbody.insertRow();
     row.innerHTML = `
             <td>${record.dossard}</td>
@@ -532,15 +593,15 @@ function updateStartRecordsTable() {
 function updateFinishRecordsTable() {
   const tbody = document.getElementById('finishRecordsTable');
   if (!tbody) return;
-    
+
   tbody.innerHTML = '';
-    
+
   const finishRecords = records
-    .filter(record => record.type === 'Arrivée')
+    .filter((record) => record.type === 'Arrivée')
     .sort((a, b) => b.timestamp - a.timestamp)
     .slice(0, 10);
-    
-  finishRecords.forEach(record => {
+
+  finishRecords.forEach((record) => {
     const row = tbody.insertRow();
     row.innerHTML = `
             <td>${record.dossard}</td>
@@ -556,12 +617,12 @@ function updateFinishRecordsTable() {
 function updateRecordsTable() {
   const tbody = document.getElementById('recordsTable');
   if (!tbody) return;
-    
+
   tbody.innerHTML = '';
-    
+
   const sortedRecords = records.sort((a, b) => b.timestamp - a.timestamp);
-    
-  sortedRecords.forEach(record => {
+
+  sortedRecords.forEach((record) => {
     const row = tbody.insertRow();
     row.innerHTML = `
             <td>${record.dossard}</td>
@@ -576,16 +637,16 @@ function updateRecordsTable() {
 }
 
 function modifierRecord(id) {
-  const record = records.find(r => r.id === id);
+  const record = records.find((r) => r.id === id);
   if (record) {
     const nouveauDossard = prompt('Nouveau numéro de dossard:', record.dossard);
     const nouvelleHeure = prompt('Nouvelle heure (HH:MM:SS):', record.heure);
-        
+
     if (nouveauDossard !== null) record.dossard = nouveauDossard;
     if (nouvelleHeure !== null && /^\d{2}:\d{2}:\d{2}$/.test(nouvelleHeure)) {
       record.heure = nouvelleHeure;
     }
-        
+
     updateAllTables();
     triggerAutoSave();
     showAlert('Enregistrement modifié', 'success', 1000);
@@ -594,7 +655,7 @@ function modifierRecord(id) {
 
 function supprimerRecord(id) {
   if (confirm('Êtes-vous sûr de vouloir supprimer cet enregistrement ?')) {
-    records = records.filter(r => r.id !== id);
+    records = records.filter((r) => r.id !== id);
     updateAllTables();
     triggerAutoSave();
     showAlert('Enregistrement supprimé', 'success', 1000);
@@ -608,26 +669,31 @@ function exporterCSV() {
     showAlert('Aucune donnée à exporter', 'warning', 2000);
     return;
   }
-    
+
   const headers = 'N° Dossard,Type,Heure\n';
   const csvContent = records
     .sort((a, b) => a.timestamp - b.timestamp)
-    .map(record => `${record.dossard},${record.type},${record.heure}`)
+    .map((record) => `${record.dossard},${record.type},${record.heure}`)
     .join('\n');
-    
-  const blob = new Blob([headers + csvContent], { type: 'text/csv;charset=utf-8;' });
+
+  const blob = new Blob([headers + csvContent], {
+    type: 'text/csv;charset=utf-8;',
+  });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
-    
+
   link.setAttribute('href', url);
-  link.setAttribute('download', `aquathlon_chronos_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`);
+  link.setAttribute(
+    'download',
+    `aquathlon_chronos_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`
+  );
   link.style.visibility = 'hidden';
-    
+
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
-    
+
   showAlert('Export CSV téléchargé !', 'success', 2000);
 }
 
@@ -636,23 +702,30 @@ function exporterCSVPourSheets() {
     showAlert('Aucune donnée à exporter', 'warning', 2000);
     return;
   }
-    
+
   const headers = 'Timestamp,N° Dossard,Type,Heure';
   const csvContent = records
     .sort((a, b) => a.timestamp - b.timestamp)
-    .map(record => {
+    .map((record) => {
       const timestamp = new Date(record.timestamp).toISOString();
       return `${timestamp},${record.dossard},${record.type},${record.heure}`;
     })
     .join('\n');
-    
+
   const fullCSV = headers + '\n' + csvContent;
-    
-  navigator.clipboard.writeText(fullCSV).then(() => {
-    showAlert('✅ CSV copié ! Collez-le dans votre Google Sheet (Ctrl+V)', 'success', 4000);
-  }).catch(() => {
-    showAlert('❌ Impossible de copier automatiquement', 'warning', 2000);
-  });
+
+  navigator.clipboard
+    .writeText(fullCSV)
+    .then(() => {
+      showAlert(
+        '✅ CSV copié ! Collez-le dans votre Google Sheet (Ctrl+V)',
+        'success',
+        4000
+      );
+    })
+    .catch(() => {
+      showAlert('❌ Impossible de copier automatiquement', 'warning', 2000);
+    });
 }
 
 function exporterSauvegardeAuto() {
@@ -660,32 +733,36 @@ function exporterSauvegardeAuto() {
     showAlert('Aucune donnée à sauvegarder', 'warning', 2000);
     return;
   }
-    
+
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const data = {
     exportTime: new Date().toISOString(),
     records: records,
-    totalRecords: records.length
+    totalRecords: records.length,
   };
-    
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: 'application/json',
+  });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-    
+
   a.href = url;
   a.download = `aquathlon_backup_${timestamp}.json`;
   a.style.visibility = 'hidden';
-    
+
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-    
+
   showAlert('Sauvegarde JSON téléchargée !', 'success', 2000);
 }
 
 function viderDonnees() {
-  if (confirm('Êtes-vous sûr de vouloir supprimer tous les enregistrements ?')) {
+  if (
+    confirm('Êtes-vous sûr de vouloir supprimer tous les enregistrements ?')
+  ) {
     records = [];
     updateAllTables();
     triggerAutoSave();
@@ -695,18 +772,23 @@ function viderDonnees() {
 
 // === GESTION DU CLAVIER ===
 
-document.addEventListener('keydown', function(event) {
+document.addEventListener('keydown', function (event) {
   if (event.key === 'Enter') {
     const activeElement = document.activeElement;
-        
+
     if (currentTab === 'start') {
-      if (activeElement.id === 'startDossard' || activeElement.tagName !== 'INPUT') {
+      if (
+        activeElement.id === 'startDossard' ||
+        activeElement.tagName !== 'INPUT'
+      ) {
         event.preventDefault();
         enregistrerDepart();
       }
-    }
-    else if (currentTab === 'finish') {
-      if (activeElement.id === 'finishDossard' || activeElement.tagName !== 'INPUT') {
+    } else if (currentTab === 'finish') {
+      if (
+        activeElement.id === 'finishDossard' ||
+        activeElement.tagName !== 'INPUT'
+      ) {
         event.preventDefault();
         enregistrerArrivee();
       }
@@ -722,7 +804,7 @@ function startAutoBackup() {
       sauvegardeLocale();
     }
   }, BACKUP_CONFIG.localInterval);
-    
+
   setTimeout(() => {
     if (records.length === 0) {
       restaurerSauvegarde();
@@ -730,12 +812,12 @@ function startAutoBackup() {
   }, 1000);
 }
 
-window.onload = function() {
+window.onload = function () {
   document.getElementById('startDossard').focus();
   startAutoBackup();
   updateTime();
   setInterval(updateTime, 1000);
-    
+
   if (records.length === 0) {
     setTimeout(restaurerSauvegarde, 500);
   }
