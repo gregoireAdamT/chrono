@@ -1,0 +1,24 @@
+{
+  "name": "chrono",
+  "version": "1.0.0",
+  "main": "apps-script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint *.js",
+    "lint:fix": "eslint *.js --fix",
+    "lint:css": "stylelint *.css",
+    "format": "prettier --write *.{html,css,js}",
+    "fix-all": "npm run lint:fix && npm run format"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "eslint": "^9.34.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.6.2",
+    "stylelint": "^16.23.1",
+    "stylelint-config-standard": "^39.0.0"
+  }
+}

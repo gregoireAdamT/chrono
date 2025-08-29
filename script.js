@@ -12,7 +12,7 @@ const BACKUP_CONFIG = {
 };
 
 // Webhook URL set by default
-const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbw48xgfgTLAbIpAx2TkpCCu4AKXcrTz_WauR3hwFh-4MGHlBRReQjASWzOcB5O4i0fxtw/exec';
+const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbw48xgfgTLAbIpAx2TkpCCu4AKXcrTz_WauR3hwFh-4MGHlBRReQjASWzOcB5O4i0fxtw/exec';
 
 // When page loads, populate the input
 document.addEventListener('DOMContentLoaded', function() {
@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (webhookInput && !webhookInput.value) {
         webhookInput.value = DEFAULT_WEBHOOK_URL;
     }
+    configurerWebhook()
 });
 
 
