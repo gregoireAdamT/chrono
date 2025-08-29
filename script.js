@@ -390,9 +390,55 @@ function enregistrerArrivee() {
     showToast(`🏁 Arrivée ${dossard || 'dossard à saisir'}`, 'success', 800);
 }
 
+// Synchronisation automatique avec webhook
+async function syncViaWebhook() {
+    if (!webhook_url || records.length === 0) return false;
+    
+    console.log('=== SYNC AUTO WEBHOOK ===');
+    
+    try {
+        const data = {
+            timestamp: new Date().toISOString(),
+            records: records,
+            source: 'aquathlon_chrono',
+            total: records.length
+        };
+        
+        console.log('Tentative sync auto avec', records.length, 'records');
+        
+        // Essayer les 3 méthodes dans l'ordre
+        let success = await sendToWebhookNoCORS(data);
+        if (success) {
+            updateBackupStatus(`☁️ Sync auto POST form-data OK (${records.length} records)`);
+            return true;
+        }
+        
+        success = await sendToWebhookViaGET(data);
+        if (success) {
+            updateBackupStatus(`☁️ Sync auto GET OK (${records.length} records)`);
+            return true;
+        }
+        
+        await sendViaImageTracking(data);
+        updateBackupStatus(`☁️ Sync auto image tracking tenté (${records.length} records)`);
+        return true;
+        
+    } catch (error) {
+        console.error('Erreur sync auto:', error);
+        updateBackupStatus('❌ Sync auto échouée');
+        return false;
+    }
+}
+
 function triggerAutoSave() {
     if (autoSaveEnabled) {
         sauvegardeLocale();
+        
+        // AJOUT: Synchronisation automatique avec webhook
+        if (sync_enabled && webhook_url) {
+            console.log('Déclenchement sync auto...');
+            syncViaWebhook();
+        }
     }
 }
 
