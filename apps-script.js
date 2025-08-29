@@ -1,141 +1,313 @@
-// SCRIPT GOOGLE APPS SCRIPT POUR CHRONOMÉTRAGE AQUATHLON
-// À déployer comme Web App
+// SCRIPT GOOGLE APPS SCRIPT AVEC ONGLETS SÉPARÉS
+// Version qui alimente les 3 onglets
 
-// ⚠️ IMPORTANT: REMPLACEZ L'ID CI-DESSOUS PAR VOTRE VRAI ID DE GOOGLE SHEET
-const SHEET_ID = '1Pmow1wBR3D1paMLNWNDj6mPaPOiFXfw2iAHNkUg6f2A'; // <-- VOTRE ID EST DÉJÀ LÀ !
-
-// CORRECTION CORS: Google Apps Script gère automatiquement CORS pour les Web Apps
-// Il suffit de s'assurer que le déploiement est accessible à "Tout le monde"
+const SHEET_ID = '1Pmow1wBR3D1paMLNWNDj6mPaPOiFXfw2iAHNkUg6f2A';
 
 function doPost(e) {
   try {
-    // Récupérer les données envoyées par les chronos
-    const data = JSON.parse(e.postData.contents);
-    console.log('Données reçues:', data);
+    console.log('POST reçu:', e);
     
-    // Initialiser le spreadsheet et les onglets
-    const spreadsheet = initSpreadsheet();
+    let data;
     
-    // Traiter les données selon le type
+    // Méthode 1: JSON dans postData (ancien)
+    if (e.postData && e.postData.contents) {
+      try {
+        data = JSON.parse(e.postData.contents);
+        console.log('Data depuis JSON:', data);
+      } catch (jsonError) {
+        console.log('Pas de JSON valide dans contents');
+      }
+    }
+    
+    // Méthode 2: Form-data (nouveau, évite CORS)
+    if (!data && e.parameter && e.parameter.data) {
+      try {
+        data = JSON.parse(e.parameter.data);
+        console.log('Data depuis form-data:', data);
+      } catch (formError) {
+        console.log('Erreur parsing form-data:', formError);
+      }
+    }
+    
+    if (!data || !data.records) {
+      throw new Error('Aucune donnée trouvée');
+    }
+    
+    // Traiter les données dans les 3 onglets
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    
+    // Créer/obtenir les onglets
+    let chronosSheet = getOrCreateSheet(ss, 'Chronos');
+    let departsSheet = getOrCreateSheet(ss, 'Départs');  
+    let arriveesSheet = getOrCreateSheet(ss, 'Arrivées');
+    
+    let count = 0;
     let departsCount = 0;
     let arriveesCount = 0;
     
-    data.records.forEach(record => {
+    data.records.forEach((record, index) => {
+      console.log(`Record ${index}:`, {
+        dossard: record.dossard,
+        type: record.type,
+        heure: record.heure
+      });
+      
       const row = [
-        new Date(record.timestamp),
-        record.dossard,
-        record.type,
-        record.heure,
-        data.source || 'chrono',
-        new Date() // Timestamp de réception
+        new Date(),
+        record.dossard || 'N/A',
+        record.type || 'N/A',
+        record.heure || 'N/A',
+        data.source || 'chrono'
       ];
       
-      // Ajouter à l'onglet principal (tout)
-      const sheetPrincipal = spreadsheet.getSheetByName('Chronos');
-      sheetPrincipal.appendRow(row);
+      // Ajouter à l'onglet principal (tous les records)
+      chronosSheet.appendRow(row);
+      count++;
       
-      // Ajouter aux onglets spécialisés
+      // CORRECTION: Vérification stricte du type
+      console.log(`Type détecté pour record ${index}: "${record.type}"`);
+      
       if (record.type === 'Départ') {
-        const sheetDeparts = spreadsheet.getSheetByName('Départs');
-        sheetDeparts.appendRow(row);
+        console.log(`Record ${index} ajouté aux DÉPARTS`);
+        departsSheet.appendRow(row);
         departsCount++;
       } else if (record.type === 'Arrivée') {
-        const sheetArrivees = spreadsheet.getSheetByName('Arrivées');
-        sheetArrivees.appendRow(row);
+        console.log(`Record ${index} ajouté aux ARRIVÉES`);
+        arriveesSheet.appendRow(row);
         arriveesCount++;
+      } else {
+        console.log(`Record ${index} - Type non reconnu: "${record.type}"`);
       }
     });
     
-    // Log pour debug
-    console.log(`Traités: ${data.records.length} records (${departsCount} départs, ${arriveesCount} arrivées)`);
+    console.log(`${count} records ajoutés (${departsCount} départs, ${arriveesCount} arrivées)`);
     
-    // Retourner succès (Apps Script gère automatiquement CORS)
     return ContentService
       .createTextOutput(JSON.stringify({
         success: true,
-        message: `${data.records.length} records ajoutés`,
-        details: {
-          departs: departsCount,
-          arrivees: arriveesCount,
-          timestamp: new Date().toISOString()
-        }
+        count: count,
+        departs: departsCount,
+        arrivees: arriveesCount,
+        method: 'POST'
       }))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
-    // Log d'erreur détaillé
-    console.error('Erreur webhook:', error);
-    
-    // Retourner erreur
+    console.error('Erreur POST:', error);
     return ContentService
       .createTextOutput(JSON.stringify({
         success: false,
         error: error.toString(),
-        message: 'Erreur lors du traitement des données',
-        sheet_id: SHEET_ID
+        method: 'POST'
       }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
-// FONCTION GET pour test simple
 function doGet(e) {
   try {
-    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    console.log('GET reçu:', e);
+    console.log('Parameters:', e.parameter);
+    
+    // Si c'est une requête image tracking
+    if (e.parameter && e.parameter.method === 'image') {
+      console.log('=== Image tracking request ===');
+      
+      if (e.parameter.data) {
+        const data = JSON.parse(e.parameter.data);
+        console.log('Data depuis image:', data);
+        
+        // Traiter les données dans les 3 onglets
+        const ss = SpreadsheetApp.openById(SHEET_ID);
+        let chronosSheet = getOrCreateSheet(ss, 'Chronos');
+        let departsSheet = getOrCreateSheet(ss, 'Départs');
+        let arriveesSheet = getOrCreateSheet(ss, 'Arrivées');
+        
+        let count = 0;
+        data.records.forEach((record, index) => {
+          console.log(`Record ${index}:`, {
+            dossard: record.dossard,
+            type: record.type,
+            heure: record.heure
+          });
+          
+          const row = [
+            new Date(),
+            record.dossard || 'N/A',
+            record.type || 'N/A',
+            record.heure || 'N/A',
+            'image_tracking'
+          ];
+          
+          chronosSheet.appendRow(row);
+          count++;
+          
+          console.log(`Type détecté pour record ${index}: "${record.type}"`);
+          
+          if (record.type === 'Départ') {
+            console.log(`Record ${index} ajouté aux DÉPARTS (image)`);
+            departsSheet.appendRow(row);
+          } else if (record.type === 'Arrivée') {
+            console.log(`Record ${index} ajouté aux ARRIVÉES (image)`);
+            arriveesSheet.appendRow(row);
+          } else {
+            console.log(`Record ${index} - Type non reconnu (image): "${record.type}"`);
+          }
+        });
+        
+        console.log(`${count} records ajoutés via image tracking`);
+      }
+      
+      // Retourner une image 1x1 transparente
+      const transparentPixel = Utilities.base64Decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==');
+      return Utilities.newBlob(transparentPixel, 'image/png');
+    }
+    
+    // Si pas de paramètres, retourner status
+    if (!e.parameter || !e.parameter.data) {
+      return ContentService
+        .createTextOutput(JSON.stringify({
+          success: true,
+          message: 'Webhook opérationnel',
+          timestamp: new Date().toISOString(),
+          methods: ['GET', 'POST', 'Image tracking']
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Traiter les données envoyées via GET normal
+    const data = JSON.parse(e.parameter.data);
+    console.log('Data depuis GET:', data);
+    
+    if (!data.records) {
+      throw new Error('Pas de records dans les données GET');
+    }
+    
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    let chronosSheet = getOrCreateSheet(ss, 'Chronos');
+    let departsSheet = getOrCreateSheet(ss, 'Départs');
+    let arriveesSheet = getOrCreateSheet(ss, 'Arrivées');
+    
+    let count = 0;
+    let departsCount = 0;
+    let arriveesCount = 0;
+    
+    data.records.forEach((record, index) => {
+      console.log(`GET Record ${index}:`, {
+        dossard: record.dossard,
+        type: record.type,
+        heure: record.heure
+      });
+      
+      const row = [
+        new Date(),
+        record.dossard || 'N/A',
+        record.type || 'N/A',
+        record.heure || 'N/A',
+        'GET'
+      ];
+      
+      chronosSheet.appendRow(row);
+      count++;
+      
+      console.log(`GET Type détecté pour record ${index}: "${record.type}"`);
+      
+      if (record.type === 'Départ') {
+        console.log(`GET Record ${index} ajouté aux DÉPARTS`);
+        departsSheet.appendRow(row);
+        departsCount++;
+      } else if (record.type === 'Arrivée') {
+        console.log(`GET Record ${index} ajouté aux ARRIVÉES`);
+        arriveesSheet.appendRow(row);
+        arriveesCount++;
+      } else {
+        console.log(`GET Record ${index} - Type non reconnu: "${record.type}"`);
+      }
+    });
+    
+    console.log(`${count} records ajoutés via GET`);
     
     return ContentService
       .createTextOutput(JSON.stringify({
         success: true,
-        message: 'Webhook opérationnel',
-        sheet_name: spreadsheet.getName(),
-        sheet_url: spreadsheet.getUrl(),
-        timestamp: new Date().toISOString()
+        count: count,
+        departs: departsCount,
+        arrivees: arriveesCount,
+        method: 'GET'
       }))
       .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
+    console.error('Erreur GET:', error);
+    
+    // En cas d'erreur dans image tracking, retourner quand même une image
+    if (e.parameter && e.parameter.method === 'image') {
+      const transparentPixel = Utilities.base64Decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==');
+      return Utilities.newBlob(transparentPixel, 'image/png');
+    }
+    
     return ContentService
       .createTextOutput(JSON.stringify({
         success: false,
-        error: error.toString()
+        error: error.toString(),
+        method: 'GET'
       }))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
 
-// FONCTION SIMPLE POUR FORCER L'AUTORISATION (LANCEZ CELLE-CI D'ABORD)
-function autoriserPermissions() {
-  try {
-    console.log('🔐 Test d\'autorisation...');
+// Fonction pour créer ou obtenir un onglet avec en-têtes
+function getOrCreateSheet(spreadsheet, sheetName) {
+  let sheet = spreadsheet.getSheetByName(sheetName);
+  
+  if (sheet === null) {
+    // Créer l'onglet
+    sheet = spreadsheet.insertSheet(sheetName);
     
-    // Test simple d'accès à Google Sheets
-    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
-    console.log('✅ Spreadsheet accessible:', spreadsheet.getName());
-    console.log('📊 URL:', spreadsheet.getUrl());
+    // Ajouter les en-têtes
+    const headers = ['Timestamp', 'N° Dossard', 'Type', 'Heure', 'Source'];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     
-    // Test d'écriture simple
-    let sheet = spreadsheet.getSheetByName('Test');
-    if (sheet === null) {
-      sheet = spreadsheet.insertSheet('Test');
-    }
-    
-    // Écrire une cellule de test
-    sheet.getRange('A1').setValue('Test autorisation - ' + new Date());
-    console.log('✅ Écriture autorisée');
-    
-    return '✅ PERMISSIONS ACCORDÉES ! Vous pouvez maintenant utiliser les autres fonctions.';
-    
-  } catch (error) {
-    console.error('❌ Erreur d\'autorisation:', error);
-    
-    if (error.toString().includes('Access denied')) {
-      return '❌ ACCÈS REFUSÉ - Suivez les instructions pour autoriser le script';
-    } else if (error.toString().includes('Invalid value')) {
-      return '❌ ID DE SHEET INVALIDE - Vérifiez que l\'ID est correct';
-    } else {
-      return `❌ ERREUR: ${error.toString()}`;
-    }
+    // Mise en forme
+    const headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setFontWeight('bold');
+    headerRange.setBackground('#4285f4');
+    headerRange.setFontColor('white');
+    sheet.autoResizeColumns(1, headers.length);
   }
+  
+  return sheet;
+}
+
+// Test avec les nouvelles méthodes
+function testNouvellesMethods() {
+  console.log('=== Test POST form-data ===');
+  const postResult = doPost({
+    parameter: {
+      data: JSON.stringify({
+        records: [{
+          dossard: 'TEST-POST',
+          type: 'Test POST',
+          heure: new Date().toLocaleTimeString()
+        }]
+      })
+    }
+  });
+  console.log('POST result:', postResult.getContent());
+  
+  console.log('=== Test GET params ===');
+  const getResult = doGet({
+    parameter: {
+      data: JSON.stringify({
+        records: [{
+          dossard: 'TEST-GET',
+          type: 'Test GET',
+          heure: new Date().toLocaleTimeString()
+        }]
+      })
+    }
+  });
+  console.log('GET result:', getResult.getContent());
 }
 
 // Fonction pour initialiser le spreadsheet et créer les onglets
@@ -612,7 +784,7 @@ function diagnosticComplet() {
     
     // Test 3: Écriture
     const firstSheet = sheets[0];
-    firstSheet.getRange('A1').setValue('Test diagnostic - ' + new Date());
+    firstSheet.getRange('A2').setValue('Test diagnostic - ' + new Date());
     console.log('✅ Test 3 - Écriture: OK');
     
     return '✅ TOUS LES TESTS SONT PASSÉS !';

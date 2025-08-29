@@ -11,6 +11,18 @@ const BACKUP_CONFIG = {
     webhook_timeout: 5000,      // 5s timeout pour webhook
 };
 
+// Webhook URL set by default
+const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbw48xgfgTLAbIpAx2TkpCCu4AKXcrTz_WauR3hwFh-4MGHlBRReQjASWzOcB5O4i0fxtw/exec';
+
+// When page loads, populate the input
+document.addEventListener('DOMContentLoaded', function() {
+    const webhookInput = document.getElementById('webhook-url');
+    if (webhookInput && !webhookInput.value) {
+        webhookInput.value = DEFAULT_WEBHOOK_URL;
+    }
+});
+
+
 // Gestion des onglets
 let currentTab = 'start';
 
@@ -376,10 +388,15 @@ function enregistrerArrivee() {
     records.push({
         id: Date.now(),
         dossard: dossard || 'À saisir',
-        type: 'Arrivée',
+        type: 'Arrivée', // VÉRIFICATION: Bien "Arrivée" avec accent
         heure: temps,
         timestamp: now.getTime()
     });
+    
+    // DEBUG: Vérifier le record créé
+    const dernierRecord = records[records.length - 1];
+    console.log('🐛 DEBUG - Record arrivée créé:', dernierRecord);
+    console.log('🐛 DEBUG - Type exact:', `"${dernierRecord.type}"`);
     
     updateAllTables();
     triggerAutoSave();
@@ -390,42 +407,79 @@ function enregistrerArrivee() {
     showToast(`🏁 Arrivée ${dossard || 'dossard à saisir'}`, 'success', 800);
 }
 
-// Synchronisation automatique avec webhook
+let lastSyncCount = 0; // Compteur pour la sync incrémentale
+
+// Synchronisation incrémentale - AVEC DEBUG COMPLET
 async function syncViaWebhook() {
     if (!webhook_url || records.length === 0) return false;
     
-    console.log('=== SYNC AUTO WEBHOOK ===');
+    console.log('🔍 DEBUG SYNC - État actuel:');
+    console.log('   - records.length:', records.length);
+    console.log('   - lastSyncCount:', lastSyncCount);
+    console.log('   - Derniers records:', records.slice(-3).map(r => `${r.type} ${r.dossard}`));
+    
+    // CORRECTION: Ne synchroniser que le DERNIER record ajouté
+    if (records.length <= lastSyncCount) {
+        console.log('✅ Aucun nouveau record à synchroniser');
+        return true;
+    }
+    
+    // Prendre seulement le(s) nouveau(x) record(s)
+    //const nbRecords = records.length - lastSyncCount;
+    const newRecords = records.slice(0, 1);
+
+    
+    console.log(`🚀 SYNC INCRÉMENTALE - ${newRecords.length} nouveaux records`);
+    console.log('🔍 Records à synchroniser:', newRecords.map(r => `${r.type} ${r.dossard} à ${r.heure}`));
     
     try {
         const data = {
             timestamp: new Date().toISOString(),
-            records: records,
+            records: newRecords,
             source: 'aquathlon_chrono',
-            total: records.length
+            total: newRecords.length,
+            isIncremental: true,
+            debugInfo: {
+                lastSyncCount: lastSyncCount,
+                totalRecords: records.length,
+                newCount: newRecords.length
+            }
         };
-        
-        console.log('Tentative sync auto avec', records.length, 'records');
         
         // Essayer les 3 méthodes dans l'ordre
         let success = await sendToWebhookNoCORS(data);
         if (success) {
-            updateBackupStatus(`☁️ Sync auto POST form-data OK (${records.length} records)`);
+            const oldLastSyncCount = lastSyncCount;
+            lastSyncCount = records.length; 
+            updateBackupStatus(`☁️ Sync incrémentale POST OK (+${newRecords.length})`);
+            console.log(`✅ Sync POST réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`);
+            
+            // Sauvegarder immédiatement pour ne pas perdre le compteur
+            sauvegardeLocale();
             return true;
         }
         
         success = await sendToWebhookViaGET(data);
         if (success) {
-            updateBackupStatus(`☁️ Sync auto GET OK (${records.length} records)`);
+            const oldLastSyncCount = lastSyncCount;
+            lastSyncCount = records.length;
+            updateBackupStatus(`☁️ Sync incrémentale GET OK (+${newRecords.length})`);
+            console.log(`✅ Sync GET réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`);
+            sauvegardeLocale();
             return true;
         }
         
         await sendViaImageTracking(data);
-        updateBackupStatus(`☁️ Sync auto image tracking tenté (${records.length} records)`);
+        const oldLastSyncCount = lastSyncCount;
+        lastSyncCount = records.length;
+        updateBackupStatus(`☁️ Sync incrémentale image OK (+${newRecords.length})`);
+        console.log(`✅ Sync IMAGE réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`);
+        sauvegardeLocale();
         return true;
         
     } catch (error) {
-        console.error('Erreur sync auto:', error);
-        updateBackupStatus('❌ Sync auto échouée');
+        console.error('❌ Erreur sync incrémentale:', error);
+        updateBackupStatus('❌ Sync incrémentale échouée');
         return false;
     }
 }
@@ -434,9 +488,9 @@ function triggerAutoSave() {
     if (autoSaveEnabled) {
         sauvegardeLocale();
         
-        // AJOUT: Synchronisation automatique avec webhook
+        // Synchronisation incrémentale avec webhook
         if (sync_enabled && webhook_url) {
-            console.log('Déclenchement sync auto...');
+            console.log('Déclenchement sync incrémentale...');
             syncViaWebhook();
         }
     }
