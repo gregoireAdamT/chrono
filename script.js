@@ -49,18 +49,53 @@ function updateTime() {
     document.getElementById('finishTime').textContent = timeString;
 }
 
-// Fonction pour afficher les alertes
-function showAlert(message, type = 'success', duration = 1500) {
-    const alertContainer = document.getElementById('alert-container');
-    const alert = document.createElement('div');
-    alert.className = `alert alert-${type}`;
-    alert.textContent = message;
-    alertContainer.innerHTML = '';
-    alertContainer.appendChild(alert);
+// Fonction pour afficher les notifications toast (latérales)
+function showToast(message, type = 'success', duration = 1500) {
+    const toastContainer = document.getElementById('toast-container');
     
+    // Créer le toast
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Icône selon le type
+    let icon = '✅';
+    if (type === 'warning') icon = '⚠️';
+    if (type === 'error') icon = '❌';
+    
+    toast.innerHTML = `
+        <span class="toast-icon">${icon}</span>
+        <span class="toast-message">${message}</span>
+        <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
+    `;
+    
+    toastContainer.appendChild(toast);
+    
+    // Animation d'entrée
     setTimeout(() => {
-        alertContainer.innerHTML = '';
+        toast.classList.add('show');
+    }, 100);
+    
+    // Suppression automatique
+    setTimeout(() => {
+        removeToast(toast);
     }, duration);
+}
+
+function removeToast(toast) {
+    if (!toast) return;
+    
+    toast.classList.remove('show');
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.parentElement.removeChild(toast);
+        }
+    }, 400);
+}
+
+// Fonction pour afficher les alertes (garde l'ancienne pour compatibilité)
+function showAlert(message, type = 'success', duration = 1500) {
+    // Utiliser les toasts au lieu des alertes classiques
+    showToast(message, type, duration);
 }
 
 // === SAUVEGARDE LOCALE ===
@@ -328,7 +363,9 @@ function enregistrerDepart() {
     triggerAutoSave();
     document.getElementById('startDossard').value = '';
     document.getElementById('startDossard').focus();
-    showAlert(`Départ enregistré : ${dossard || 'dossard à saisir'} à ${temps}`, 'success', 1200);
+    
+    // Toast rapide pour les départs
+    showToast(`🏊‍♂️ Départ ${dossard || 'dossard à saisir'}`, 'success', 1000);
 }
 
 function enregistrerArrivee() {
@@ -348,7 +385,9 @@ function enregistrerArrivee() {
     triggerAutoSave();
     document.getElementById('finishDossard').value = '';
     document.getElementById('finishDossard').focus();
-    showAlert(`Arrivée enregistrée : ${dossard || 'dossard à saisir'} à ${temps}`, 'success', 800);
+    
+    // Toast très rapide pour les arrivées (plus critique)
+    showToast(`🏁 Arrivée ${dossard || 'dossard à saisir'}`, 'success', 800);
 }
 
 function triggerAutoSave() {
