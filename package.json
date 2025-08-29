@@ -1,24 +1,29 @@
 {
   "name": "chrono",
   "version": "1.0.0",
-  "main": "apps-script.js",
+  "description": "Race timing application with webhook sync",
+  "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint *.js",
     "lint:fix": "eslint *.js --fix",
     "lint:css": "stylelint *.css",
+    "lint:css:fix": "stylelint *.css --fix",
     "format": "prettier --write *.{html,css,js}",
-    "fix-all": "npm run lint:fix && npm run format"
+    "check-all": "npm run lint && npm run lint:css",
+    "fix-all": "npm run lint:fix && npm run lint:css:fix && npm run format"
   },
-  "keywords": [],
   "author": "",
-  "license": "ISC",
-  "description": "",
+  "license": "MIT",
   "devDependencies": {
-    "eslint": "^9.34.0",
+    "eslint": "^9.0.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.6.2",
     "stylelint": "^16.23.1",
     "stylelint-config-standard": "^39.0.0"
-  }
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
 }
