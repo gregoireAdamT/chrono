@@ -453,7 +453,7 @@ function creerOngletsUnParUn() {
           if (sheet !== null) {
             console.log(`✅ Méthode 1 réussie pour '${nomOnglet}'`);
           } else {
-            console.log(`❌ Méthode 1: insertSheet a retourné null`);
+            console.log('❌ Méthode 1: insertSheet a retourné null');
           }
         } catch (e1) {
           console.log(`❌ Méthode 1 échouée: ${e1}`);
@@ -468,7 +468,7 @@ function creerOngletsUnParUn() {
               sheet.setName(nomOnglet);
               console.log(`✅ Méthode 2 réussie pour '${nomOnglet}'`);
             } else {
-              console.log(`❌ Méthode 2: insertSheet() a retourné null`);
+              console.log('❌ Méthode 2: insertSheet() a retourné null');
             }
           } catch (e2) {
             console.log(`❌ Méthode 2 échouée: ${e2}`);
@@ -487,7 +487,7 @@ function creerOngletsUnParUn() {
               sheet.setName(nomOnglet);
               console.log(`✅ Méthode 3 réussie pour '${nomOnglet}' (renommé '${ancienNom}' → '${nomOnglet}')`);
             } else {
-              console.log(`❌ Méthode 3: Aucun onglet existant trouvé`);
+              console.log('❌ Méthode 3: Aucun onglet existant trouvé');
             }
           } catch (e3) {
             console.log(`❌ Méthode 3 échouée: ${e3}`);

@@ -7,8 +7,8 @@ let sync_enabled = false;
 
 // Configuration de sauvegarde
 const BACKUP_CONFIG = {
-    localInterval: 5000,        // Sauvegarde locale toutes les 5 secondes
-    webhook_timeout: 5000,      // 5s timeout pour webhook
+  localInterval: 5000,        // Sauvegarde locale toutes les 5 secondes
+  webhook_timeout: 5000,      // 5s timeout pour webhook
 };
 
 // Webhook URL set by default
@@ -16,11 +16,11 @@ const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbw48xgfgTLA
 
 // When page loads, populate the input
 document.addEventListener('DOMContentLoaded', function() {
-    const webhookInput = document.getElementById('webhook-url');
-    if (webhookInput && !webhookInput.value) {
-        webhookInput.value = DEFAULT_WEBHOOK_URL;
-    }
-    configurerWebhook()
+  const webhookInput = document.getElementById('webhook-url');
+  if (webhookInput && !webhookInput.value) {
+    webhookInput.value = DEFAULT_WEBHOOK_URL;
+  }
+  configurerWebhook();
 });
 
 
@@ -28,331 +28,331 @@ document.addEventListener('DOMContentLoaded', function() {
 let currentTab = 'start';
 
 function switchTab(tabName) {
-    // Masquer tous les contenus
-    document.querySelectorAll('.tab-content').forEach(content => {
-        content.classList.remove('active');
-    });
+  // Masquer tous les contenus
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.remove('active');
+  });
     
-    // Désactiver tous les boutons
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
+  // Désactiver tous les boutons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
     
-    // Activer l'onglet sélectionné
-    document.getElementById(tabName + '-tab').classList.add('active');
-    event.target.classList.add('active');
+  // Activer l'onglet sélectionné
+  document.getElementById(tabName + '-tab').classList.add('active');
+  event.target.classList.add('active');
     
-    currentTab = tabName;
+  currentTab = tabName;
     
-    // Focus automatique sur le bon champ
-    setTimeout(() => {
-        if (tabName === 'start') {
-            document.getElementById('startDossard').focus();
-        } else if (tabName === 'finish') {
-            document.getElementById('finishDossard').focus();
-        }
-    }, 100);
+  // Focus automatique sur le bon champ
+  setTimeout(() => {
+    if (tabName === 'start') {
+      document.getElementById('startDossard').focus();
+    } else if (tabName === 'finish') {
+      document.getElementById('finishDossard').focus();
+    }
+  }, 100);
 }
 
 // Mise à jour de l'heure en temps réel
 function updateTime() {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('fr-FR');
-    document.getElementById('startTime').textContent = timeString;
-    document.getElementById('finishTime').textContent = timeString;
+  const now = new Date();
+  const timeString = now.toLocaleTimeString('fr-FR');
+  document.getElementById('startTime').textContent = timeString;
+  document.getElementById('finishTime').textContent = timeString;
 }
 
 // Fonction pour afficher les notifications toast (latérales)
 function showToast(message, type = 'success', duration = 1500) {
-    const toastContainer = document.getElementById('toast-container');
+  const toastContainer = document.getElementById('toast-container');
     
-    // Créer le toast
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
+  // Créer le toast
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
     
-    // Icône selon le type
-    let icon = '✅';
-    if (type === 'warning') icon = '⚠️';
-    if (type === 'error') icon = '❌';
+  // Icône selon le type
+  let icon = '✅';
+  if (type === 'warning') icon = '⚠️';
+  if (type === 'error') icon = '❌';
     
-    toast.innerHTML = `
+  toast.innerHTML = `
         <span class="toast-icon">${icon}</span>
         <span class="toast-message">${message}</span>
         <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
     `;
     
-    toastContainer.appendChild(toast);
+  toastContainer.appendChild(toast);
     
-    // Animation d'entrée
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 100);
+  // Animation d'entrée
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 100);
     
-    // Suppression automatique
-    setTimeout(() => {
-        removeToast(toast);
-    }, duration);
+  // Suppression automatique
+  setTimeout(() => {
+    removeToast(toast);
+  }, duration);
 }
 
 function removeToast(toast) {
-    if (!toast) return;
+  if (!toast) return;
     
-    toast.classList.remove('show');
-    setTimeout(() => {
-        if (toast.parentElement) {
-            toast.parentElement.removeChild(toast);
-        }
-    }, 400);
+  toast.classList.remove('show');
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.parentElement.removeChild(toast);
+    }
+  }, 400);
 }
 
 // Fonction pour afficher les alertes (garde l'ancienne pour compatibilité)
 function showAlert(message, type = 'success', duration = 1500) {
-    // Utiliser les toasts au lieu des alertes classiques
-    showToast(message, type, duration);
+  // Utiliser les toasts au lieu des alertes classiques
+  showToast(message, type, duration);
 }
 
 // === SAUVEGARDE LOCALE ===
 
 function sauvegardeLocale() {
-    try {
-        const backupData = {
-            timestamp: new Date().toISOString(),
-            records: records,
-            version: '1.0'
-        };
+  try {
+    const backupData = {
+      timestamp: new Date().toISOString(),
+      records: records,
+      version: '1.0'
+    };
         
-        localStorage.setItem('aquathlon_current', JSON.stringify(backupData));
-        lastBackupTime = new Date();
+    localStorage.setItem('aquathlon_current', JSON.stringify(backupData));
+    lastBackupTime = new Date();
         
-    } catch (error) {
-        console.error('Erreur sauvegarde locale:', error);
-    }
+  } catch (error) {
+    console.error('Erreur sauvegarde locale:', error);
+  }
 }
 
 function restaurerSauvegarde() {
-    try {
-        const savedData = localStorage.getItem('aquathlon_current');
-        if (savedData) {
-            const backup = JSON.parse(savedData);
-            if (backup.records && Array.isArray(backup.records)) {
-                records = backup.records;
-                updateAllTables();
-                showAlert(`✅ ${records.length} enregistrements restaurés`, 'success', 3000);
-                return true;
-            }
-        }
-        return false;
-    } catch (error) {
-        console.error('Erreur lors de la restauration:', error);
-        showAlert('❌ Erreur lors de la restauration', 'warning', 3000);
-        return false;
+  try {
+    const savedData = localStorage.getItem('aquathlon_current');
+    if (savedData) {
+      const backup = JSON.parse(savedData);
+      if (backup.records && Array.isArray(backup.records)) {
+        records = backup.records;
+        updateAllTables();
+        showAlert(`✅ ${records.length} enregistrements restaurés`, 'success', 3000);
+        return true;
+      }
     }
+    return false;
+  } catch (error) {
+    console.error('Erreur lors de la restauration:', error);
+    showAlert('❌ Erreur lors de la restauration', 'warning', 3000);
+    return false;
+  }
 }
 
 // === FONCTIONS ANTI-CORS ===
 
 // MÉTHODE 1: POST avec form-data (évite preflight CORS)
 async function sendToWebhookNoCORS(data) {
-    try {
-        console.log('=== POST FORM-DATA ===');
-        const formData = new URLSearchParams();
-        formData.append('data', JSON.stringify(data));
+  try {
+    console.log('=== POST FORM-DATA ===');
+    const formData = new URLSearchParams();
+    formData.append('data', JSON.stringify(data));
         
-        const response = await fetch(webhook_url, {
-            method: 'POST',
-            body: formData
-        });
+    const response = await fetch(webhook_url, {
+      method: 'POST',
+      body: formData
+    });
         
-        if (response.ok) {
-            const result = await response.text();
-            console.log('POST form-data success:', result);
-            return true;
-        } else {
-            console.error('POST form-data HTTP error:', response.status);
-            return false;
-        }
-        
-    } catch (error) {
-        console.error('POST form-data error:', error);
-        return false;
+    if (response.ok) {
+      const result = await response.text();
+      console.log('POST form-data success:', result);
+      return true;
+    } else {
+      console.error('POST form-data HTTP error:', response.status);
+      return false;
     }
+        
+  } catch (error) {
+    console.error('POST form-data error:', error);
+    return false;
+  }
 }
 
 // MÉTHODE 2: GET avec paramètres (pas de preflight)
 async function sendToWebhookViaGET(data) {
-    try {
-        console.log('=== GET PARAMS ===');
-        const params = new URLSearchParams({
-            data: JSON.stringify(data),
-            action: 'add_records'
-        });
+  try {
+    console.log('=== GET PARAMS ===');
+    const params = new URLSearchParams({
+      data: JSON.stringify(data),
+      action: 'add_records'
+    });
         
-        const response = await fetch(`${webhook_url}?${params.toString()}`, {
-            method: 'GET'
-        });
+    const response = await fetch(`${webhook_url}?${params.toString()}`, {
+      method: 'GET'
+    });
         
-        if (response.ok) {
-            const result = await response.text();
-            console.log('GET success:', result);
-            return true;
-        } else {
-            console.error('GET HTTP error:', response.status);
-            return false;
-        }
-        
-    } catch (error) {
-        console.error('GET error:', error);
-        return false;
+    if (response.ok) {
+      const result = await response.text();
+      console.log('GET success:', result);
+      return true;
+    } else {
+      console.error('GET HTTP error:', response.status);
+      return false;
     }
+        
+  } catch (error) {
+    console.error('GET error:', error);
+    return false;
+  }
 }
 
 // MÉTHODE 3: Image tracking (0% CORS)
 function sendViaImageTracking(data) {
-    return new Promise((resolve, reject) => {
-        console.log('=== IMAGE TRACKING ===');
-        const img = new Image();
-        const params = new URLSearchParams({
-            data: JSON.stringify(data),
-            method: 'image'
-        });
-        
-        let timeout = setTimeout(() => {
-            console.log('Image tracking timeout (mais peut avoir fonctionné)');
-            resolve(true);
-        }, 10000);
-        
-        img.onload = () => {
-            clearTimeout(timeout);
-            console.log('Image tracking success (onload)');
-            resolve(true);
-        };
-        
-        img.onerror = () => {
-            clearTimeout(timeout);
-            console.log('Image tracking "error" (mais peut avoir fonctionné côté serveur)');
-            resolve(true);
-        };
-        
-        img.src = `${webhook_url}?${params.toString()}&t=${Date.now()}`;
-        console.log('Image tracking URL:', img.src);
+  return new Promise((resolve, reject) => {
+    console.log('=== IMAGE TRACKING ===');
+    const img = new Image();
+    const params = new URLSearchParams({
+      data: JSON.stringify(data),
+      method: 'image'
     });
+        
+    let timeout = setTimeout(() => {
+      console.log('Image tracking timeout (mais peut avoir fonctionné)');
+      resolve(true);
+    }, 10000);
+        
+    img.onload = () => {
+      clearTimeout(timeout);
+      console.log('Image tracking success (onload)');
+      resolve(true);
+    };
+        
+    img.onerror = () => {
+      clearTimeout(timeout);
+      console.log('Image tracking "error" (mais peut avoir fonctionné côté serveur)');
+      resolve(true);
+    };
+        
+    img.src = `${webhook_url}?${params.toString()}&t=${Date.now()}`;
+    console.log('Image tracking URL:', img.src);
+  });
 }
 
 // === TESTS INDIVIDUELS ===
 
 async function testStep1() {
-    if (!webhook_url) {
-        showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
-        return;
+  if (!webhook_url) {
+    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
+    return;
+  }
+    
+  console.log('=== TEST ÉTAPE 1: POST FORM-DATA ===');
+  updateBackupStatus('🔄 Test POST form-data...');
+    
+  const testData = {
+    records: [{
+      dossard: 'TEST1',
+      type: 'Test Form-Data',
+      heure: new Date().toLocaleTimeString()
+    }]
+  };
+    
+  try {
+    const success = await sendToWebhookNoCORS(testData);
+    if (success) {
+      updateBackupStatus('✅ POST form-data OK !');
+      showAlert('✅ Méthode 1 (Form-data) fonctionne !', 'success', 3000);
+    } else {
+      updateBackupStatus('❌ POST form-data KO');
+      showAlert('❌ Méthode 1 échouée', 'warning', 3000);
     }
-    
-    console.log('=== TEST ÉTAPE 1: POST FORM-DATA ===');
-    updateBackupStatus('🔄 Test POST form-data...');
-    
-    const testData = {
-        records: [{
-            dossard: 'TEST1',
-            type: 'Test Form-Data',
-            heure: new Date().toLocaleTimeString()
-        }]
-    };
-    
-    try {
-        const success = await sendToWebhookNoCORS(testData);
-        if (success) {
-            updateBackupStatus('✅ POST form-data OK !');
-            showAlert('✅ Méthode 1 (Form-data) fonctionne !', 'success', 3000);
-        } else {
-            updateBackupStatus('❌ POST form-data KO');
-            showAlert('❌ Méthode 1 échouée', 'warning', 3000);
-        }
-    } catch (error) {
-        console.error('Erreur test 1:', error);
-        updateBackupStatus('❌ POST form-data erreur: ' + error.message);
-        showAlert('❌ Méthode 1 erreur: ' + error.message, 'warning', 4000);
-    }
+  } catch (error) {
+    console.error('Erreur test 1:', error);
+    updateBackupStatus('❌ POST form-data erreur: ' + error.message);
+    showAlert('❌ Méthode 1 erreur: ' + error.message, 'warning', 4000);
+  }
 }
 
 async function testStep2() {
-    if (!webhook_url) {
-        showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
-        return;
+  if (!webhook_url) {
+    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
+    return;
+  }
+    
+  console.log('=== TEST ÉTAPE 2: GET PARAMS ===');
+  updateBackupStatus('🔄 Test GET params...');
+    
+  const testData = {
+    records: [{
+      dossard: 'TEST2',
+      type: 'Test GET',
+      heure: new Date().toLocaleTimeString()
+    }]
+  };
+    
+  try {
+    const success = await sendToWebhookViaGET(testData);
+    if (success) {
+      updateBackupStatus('✅ GET params OK !');
+      showAlert('✅ Méthode 2 (GET) fonctionne !', 'success', 3000);
+    } else {
+      updateBackupStatus('❌ GET params KO');
+      showAlert('❌ Méthode 2 échouée', 'warning', 3000);
     }
-    
-    console.log('=== TEST ÉTAPE 2: GET PARAMS ===');
-    updateBackupStatus('🔄 Test GET params...');
-    
-    const testData = {
-        records: [{
-            dossard: 'TEST2',
-            type: 'Test GET',
-            heure: new Date().toLocaleTimeString()
-        }]
-    };
-    
-    try {
-        const success = await sendToWebhookViaGET(testData);
-        if (success) {
-            updateBackupStatus('✅ GET params OK !');
-            showAlert('✅ Méthode 2 (GET) fonctionne !', 'success', 3000);
-        } else {
-            updateBackupStatus('❌ GET params KO');
-            showAlert('❌ Méthode 2 échouée', 'warning', 3000);
-        }
-    } catch (error) {
-        console.error('Erreur test 2:', error);
-        updateBackupStatus('❌ GET params erreur: ' + error.message);
-        showAlert('❌ Méthode 2 erreur: ' + error.message, 'warning', 4000);
-    }
+  } catch (error) {
+    console.error('Erreur test 2:', error);
+    updateBackupStatus('❌ GET params erreur: ' + error.message);
+    showAlert('❌ Méthode 2 erreur: ' + error.message, 'warning', 4000);
+  }
 }
 
 async function testStep3() {
-    if (!webhook_url) {
-        showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
-        return;
-    }
+  if (!webhook_url) {
+    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
+    return;
+  }
     
-    console.log('=== TEST ÉTAPE 3: IMAGE TRACKING ===');
-    updateBackupStatus('🔄 Test image tracking...');
+  console.log('=== TEST ÉTAPE 3: IMAGE TRACKING ===');
+  updateBackupStatus('🔄 Test image tracking...');
     
-    const testData = {
-        records: [{
-            dossard: 'TEST3',
-            type: 'Test Image',
-            heure: new Date().toLocaleTimeString()
-        }]
-    };
+  const testData = {
+    records: [{
+      dossard: 'TEST3',
+      type: 'Test Image',
+      heure: new Date().toLocaleTimeString()
+    }]
+  };
     
-    try {
-        await sendViaImageTracking(testData);
-        updateBackupStatus('✅ Image tracking tenté (vérifiez dans le Google Sheet)');
-        showAlert('✅ Méthode 3 (Image) tentée - vérifiez le Google Sheet !', 'success', 4000);
-    } catch (error) {
-        console.error('Erreur test 3:', error);
-        updateBackupStatus('❌ Image tracking erreur: ' + error.message);
-        showAlert('❌ Méthode 3 erreur: ' + error.message, 'warning', 4000);
-    }
+  try {
+    await sendViaImageTracking(testData);
+    updateBackupStatus('✅ Image tracking tenté (vérifiez dans le Google Sheet)');
+    showAlert('✅ Méthode 3 (Image) tentée - vérifiez le Google Sheet !', 'success', 4000);
+  } catch (error) {
+    console.error('Erreur test 3:', error);
+    updateBackupStatus('❌ Image tracking erreur: ' + error.message);
+    showAlert('❌ Méthode 3 erreur: ' + error.message, 'warning', 4000);
+  }
 }
 
 // Configuration webhook
 function configurerWebhook() {
-    webhook_url = document.getElementById('webhook-url').value;
-    if (webhook_url) {
-        sync_enabled = true;
-        updateBackupStatus('🔗 Webhook configuré - Testez les méthodes ci-dessous');
-    } else {
-        sync_enabled = false;
-    }
+  webhook_url = document.getElementById('webhook-url').value;
+  if (webhook_url) {
+    sync_enabled = true;
+    updateBackupStatus('🔗 Webhook configuré - Testez les méthodes ci-dessous');
+  } else {
+    sync_enabled = false;
+  }
 }
 
 function updateBackupStatus(message) {
-    const statusElement = document.getElementById('backup-status');
-    if (statusElement) {
-        statusElement.textContent = message;
-        statusElement.className = 'backup-status ' + 
+  const statusElement = document.getElementById('backup-status');
+  if (statusElement) {
+    statusElement.textContent = message;
+    statusElement.className = 'backup-status ' + 
             (message.includes('❌') ? 'error' : 
-                message.includes('☁️') ? 'cloud' : 'success');
-    }
+              message.includes('☁️') ? 'cloud' : 'success');
+  }
 }
 
 // === ENREGISTREMENT ET GESTION DES DONNÉES ===
@@ -360,165 +360,165 @@ function updateBackupStatus(message) {
 // === ENREGISTREMENT ET GESTION DES DONNÉES ===
 
 function enregistrerDepart() {
-    const dossard = document.getElementById('startDossard').value;
-    const now = new Date();
-    const temps = now.toLocaleTimeString('fr-FR');
+  const dossard = document.getElementById('startDossard').value;
+  const now = new Date();
+  const temps = now.toLocaleTimeString('fr-FR');
     
-    records.push({
-        id: Date.now(),
-        dossard: dossard || 'À saisir',
-        type: 'Départ',
-        heure: temps,
-        timestamp: now.getTime()
-    });
+  records.push({
+    id: Date.now(),
+    dossard: dossard || 'À saisir',
+    type: 'Départ',
+    heure: temps,
+    timestamp: now.getTime()
+  });
     
-    updateAllTables();
-    triggerAutoSave();
-    document.getElementById('startDossard').value = '';
-    document.getElementById('startDossard').focus();
+  updateAllTables();
+  triggerAutoSave();
+  document.getElementById('startDossard').value = '';
+  document.getElementById('startDossard').focus();
     
-    // Toast rapide pour les départs
-    showToast(`🏊‍♂️ Départ ${dossard || 'dossard à saisir'}`, 'success', 1000);
+  // Toast rapide pour les départs
+  showToast(`🏊‍♂️ Départ ${dossard || 'dossard à saisir'}`, 'success', 1000);
 }
 
 function enregistrerArrivee() {
-    const dossard = document.getElementById('finishDossard').value;
-    const now = new Date();
-    const temps = now.toLocaleTimeString('fr-FR');
+  const dossard = document.getElementById('finishDossard').value;
+  const now = new Date();
+  const temps = now.toLocaleTimeString('fr-FR');
     
-    records.push({
-        id: Date.now(),
-        dossard: dossard || 'À saisir',
-        type: 'Arrivée', // VÉRIFICATION: Bien "Arrivée" avec accent
-        heure: temps,
-        timestamp: now.getTime()
-    });
+  records.push({
+    id: Date.now(),
+    dossard: dossard || 'À saisir',
+    type: 'Arrivée', // VÉRIFICATION: Bien "Arrivée" avec accent
+    heure: temps,
+    timestamp: now.getTime()
+  });
     
-    // DEBUG: Vérifier le record créé
-    const dernierRecord = records[records.length - 1];
-    console.log('🐛 DEBUG - Record arrivée créé:', dernierRecord);
-    console.log('🐛 DEBUG - Type exact:', `"${dernierRecord.type}"`);
+  // DEBUG: Vérifier le record créé
+  const dernierRecord = records[records.length - 1];
+  console.log('🐛 DEBUG - Record arrivée créé:', dernierRecord);
+  console.log('🐛 DEBUG - Type exact:', `"${dernierRecord.type}"`);
     
-    updateAllTables();
-    triggerAutoSave();
-    document.getElementById('finishDossard').value = '';
-    document.getElementById('finishDossard').focus();
+  updateAllTables();
+  triggerAutoSave();
+  document.getElementById('finishDossard').value = '';
+  document.getElementById('finishDossard').focus();
     
-    // Toast très rapide pour les arrivées (plus critique)
-    showToast(`🏁 Arrivée ${dossard || 'dossard à saisir'}`, 'success', 800);
+  // Toast très rapide pour les arrivées (plus critique)
+  showToast(`🏁 Arrivée ${dossard || 'dossard à saisir'}`, 'success', 800);
 }
 
 let lastSyncCount = 0; // Compteur pour la sync incrémentale
 
 // Synchronisation incrémentale - AVEC DEBUG COMPLET
 async function syncViaWebhook() {
-    if (!webhook_url || records.length === 0) return false;
+  if (!webhook_url || records.length === 0) return false;
     
-    console.log('🔍 DEBUG SYNC - État actuel:');
-    console.log('   - records.length:', records.length);
-    console.log('   - lastSyncCount:', lastSyncCount);
-    console.log('   - Derniers records:', records.slice(-3).map(r => `${r.type} ${r.dossard}`));
+  console.log('🔍 DEBUG SYNC - État actuel:');
+  console.log('   - records.length:', records.length);
+  console.log('   - lastSyncCount:', lastSyncCount);
+  console.log('   - Derniers records:', records.slice(-3).map(r => `${r.type} ${r.dossard}`));
     
-    // CORRECTION: Ne synchroniser que le DERNIER record ajouté
-    if (records.length <= lastSyncCount) {
-        console.log('✅ Aucun nouveau record à synchroniser');
-        return true;
-    }
+  // CORRECTION: Ne synchroniser que le DERNIER record ajouté
+  if (records.length <= lastSyncCount) {
+    console.log('✅ Aucun nouveau record à synchroniser');
+    return true;
+  }
     
-    // Prendre seulement le(s) nouveau(x) record(s)
-    //const nbRecords = records.length - lastSyncCount;
-    const newRecords = records.slice(0, 1);
+  // Prendre seulement le(s) nouveau(x) record(s)
+  //const nbRecords = records.length - lastSyncCount;
+  const newRecords = records.slice(0, 1);
 
     
-    console.log(`🚀 SYNC INCRÉMENTALE - ${newRecords.length} nouveaux records`);
-    console.log('🔍 Records à synchroniser:', newRecords.map(r => `${r.type} ${r.dossard} à ${r.heure}`));
+  console.log(`🚀 SYNC INCRÉMENTALE - ${newRecords.length} nouveaux records`);
+  console.log('🔍 Records à synchroniser:', newRecords.map(r => `${r.type} ${r.dossard} à ${r.heure}`));
     
-    try {
-        const data = {
-            timestamp: new Date().toISOString(),
-            records: newRecords,
-            source: 'aquathlon_chrono',
-            total: newRecords.length,
-            isIncremental: true,
-            debugInfo: {
-                lastSyncCount: lastSyncCount,
-                totalRecords: records.length,
-                newCount: newRecords.length
-            }
-        };
+  try {
+    const data = {
+      timestamp: new Date().toISOString(),
+      records: newRecords,
+      source: 'aquathlon_chrono',
+      total: newRecords.length,
+      isIncremental: true,
+      debugInfo: {
+        lastSyncCount: lastSyncCount,
+        totalRecords: records.length,
+        newCount: newRecords.length
+      }
+    };
         
-        // Essayer les 3 méthodes dans l'ordre
-        let success = await sendToWebhookNoCORS(data);
-        if (success) {
-            const oldLastSyncCount = lastSyncCount;
-            lastSyncCount = records.length; 
-            updateBackupStatus(`☁️ Sync incrémentale POST OK (+${newRecords.length})`);
-            console.log(`✅ Sync POST réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`);
+    // Essayer les 3 méthodes dans l'ordre
+    let success = await sendToWebhookNoCORS(data);
+    if (success) {
+      const oldLastSyncCount = lastSyncCount;
+      lastSyncCount = records.length; 
+      updateBackupStatus(`☁️ Sync incrémentale POST OK (+${newRecords.length})`);
+      console.log(`✅ Sync POST réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`);
             
-            // Sauvegarder immédiatement pour ne pas perdre le compteur
-            sauvegardeLocale();
-            return true;
-        }
-        
-        success = await sendToWebhookViaGET(data);
-        if (success) {
-            const oldLastSyncCount = lastSyncCount;
-            lastSyncCount = records.length;
-            updateBackupStatus(`☁️ Sync incrémentale GET OK (+${newRecords.length})`);
-            console.log(`✅ Sync GET réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`);
-            sauvegardeLocale();
-            return true;
-        }
-        
-        await sendViaImageTracking(data);
-        const oldLastSyncCount = lastSyncCount;
-        lastSyncCount = records.length;
-        updateBackupStatus(`☁️ Sync incrémentale image OK (+${newRecords.length})`);
-        console.log(`✅ Sync IMAGE réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`);
-        sauvegardeLocale();
-        return true;
-        
-    } catch (error) {
-        console.error('❌ Erreur sync incrémentale:', error);
-        updateBackupStatus('❌ Sync incrémentale échouée');
-        return false;
+      // Sauvegarder immédiatement pour ne pas perdre le compteur
+      sauvegardeLocale();
+      return true;
     }
+        
+    success = await sendToWebhookViaGET(data);
+    if (success) {
+      const oldLastSyncCount = lastSyncCount;
+      lastSyncCount = records.length;
+      updateBackupStatus(`☁️ Sync incrémentale GET OK (+${newRecords.length})`);
+      console.log(`✅ Sync GET réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`);
+      sauvegardeLocale();
+      return true;
+    }
+        
+    await sendViaImageTracking(data);
+    const oldLastSyncCount = lastSyncCount;
+    lastSyncCount = records.length;
+    updateBackupStatus(`☁️ Sync incrémentale image OK (+${newRecords.length})`);
+    console.log(`✅ Sync IMAGE réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`);
+    sauvegardeLocale();
+    return true;
+        
+  } catch (error) {
+    console.error('❌ Erreur sync incrémentale:', error);
+    updateBackupStatus('❌ Sync incrémentale échouée');
+    return false;
+  }
 }
 
 function triggerAutoSave() {
-    if (autoSaveEnabled) {
-        sauvegardeLocale();
+  if (autoSaveEnabled) {
+    sauvegardeLocale();
         
-        // Synchronisation incrémentale avec webhook
-        if (sync_enabled && webhook_url) {
-            console.log('Déclenchement sync incrémentale...');
-            syncViaWebhook();
-        }
+    // Synchronisation incrémentale avec webhook
+    if (sync_enabled && webhook_url) {
+      console.log('Déclenchement sync incrémentale...');
+      syncViaWebhook();
     }
+  }
 }
 
 // === GESTION DES TABLEAUX ===
 
 function updateAllTables() {
-    updateRecordsTable();
-    updateStartRecordsTable();
-    updateFinishRecordsTable();
+  updateRecordsTable();
+  updateStartRecordsTable();
+  updateFinishRecordsTable();
 }
 
 function updateStartRecordsTable() {
-    const tbody = document.getElementById('startRecordsTable');
-    if (!tbody) return;
+  const tbody = document.getElementById('startRecordsTable');
+  if (!tbody) return;
     
-    tbody.innerHTML = '';
+  tbody.innerHTML = '';
     
-    const startRecords = records
-        .filter(record => record.type === 'Départ')
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, 10);
+  const startRecords = records
+    .filter(record => record.type === 'Départ')
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 10);
     
-    startRecords.forEach(record => {
-        const row = tbody.insertRow();
-        row.innerHTML = `
+  startRecords.forEach(record => {
+    const row = tbody.insertRow();
+    row.innerHTML = `
             <td>${record.dossard}</td>
             <td>${record.heure}</td>
             <td>
@@ -526,23 +526,23 @@ function updateStartRecordsTable() {
                 <button class="btn delete-btn" onclick="supprimerRecord(${record.id})">🗑️</button>
             </td>
         `;
-    });
+  });
 }
 
 function updateFinishRecordsTable() {
-    const tbody = document.getElementById('finishRecordsTable');
-    if (!tbody) return;
+  const tbody = document.getElementById('finishRecordsTable');
+  if (!tbody) return;
     
-    tbody.innerHTML = '';
+  tbody.innerHTML = '';
     
-    const finishRecords = records
-        .filter(record => record.type === 'Arrivée')
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, 10);
+  const finishRecords = records
+    .filter(record => record.type === 'Arrivée')
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .slice(0, 10);
     
-    finishRecords.forEach(record => {
-        const row = tbody.insertRow();
-        row.innerHTML = `
+  finishRecords.forEach(record => {
+    const row = tbody.insertRow();
+    row.innerHTML = `
             <td>${record.dossard}</td>
             <td>${record.heure}</td>
             <td>
@@ -550,20 +550,20 @@ function updateFinishRecordsTable() {
                 <button class="btn delete-btn" onclick="supprimerRecord(${record.id})">🗑️</button>
             </td>
         `;
-    });
+  });
 }
 
 function updateRecordsTable() {
-    const tbody = document.getElementById('recordsTable');
-    if (!tbody) return;
+  const tbody = document.getElementById('recordsTable');
+  if (!tbody) return;
     
-    tbody.innerHTML = '';
+  tbody.innerHTML = '';
     
-    const sortedRecords = records.sort((a, b) => b.timestamp - a.timestamp);
+  const sortedRecords = records.sort((a, b) => b.timestamp - a.timestamp);
     
-    sortedRecords.forEach(record => {
-        const row = tbody.insertRow();
-        row.innerHTML = `
+  sortedRecords.forEach(record => {
+    const row = tbody.insertRow();
+    row.innerHTML = `
             <td>${record.dossard}</td>
             <td><span class="status ${record.type === 'Départ' ? 'status-depart' : 'status-arrivee'}">${record.type}</span></td>
             <td>${record.heure}</td>
@@ -572,171 +572,171 @@ function updateRecordsTable() {
                 <button class="btn delete-btn" onclick="supprimerRecord(${record.id})">🗑️</button>
             </td>
         `;
-    });
+  });
 }
 
 function modifierRecord(id) {
-    const record = records.find(r => r.id === id);
-    if (record) {
-        const nouveauDossard = prompt('Nouveau numéro de dossard:', record.dossard);
-        const nouvelleHeure = prompt('Nouvelle heure (HH:MM:SS):', record.heure);
+  const record = records.find(r => r.id === id);
+  if (record) {
+    const nouveauDossard = prompt('Nouveau numéro de dossard:', record.dossard);
+    const nouvelleHeure = prompt('Nouvelle heure (HH:MM:SS):', record.heure);
         
-        if (nouveauDossard !== null) record.dossard = nouveauDossard;
-        if (nouvelleHeure !== null && /^\d{2}:\d{2}:\d{2}$/.test(nouvelleHeure)) {
-            record.heure = nouvelleHeure;
-        }
-        
-        updateAllTables();
-        triggerAutoSave();
-        showAlert('Enregistrement modifié', 'success', 1000);
+    if (nouveauDossard !== null) record.dossard = nouveauDossard;
+    if (nouvelleHeure !== null && /^\d{2}:\d{2}:\d{2}$/.test(nouvelleHeure)) {
+      record.heure = nouvelleHeure;
     }
+        
+    updateAllTables();
+    triggerAutoSave();
+    showAlert('Enregistrement modifié', 'success', 1000);
+  }
 }
 
 function supprimerRecord(id) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cet enregistrement ?')) {
-        records = records.filter(r => r.id !== id);
-        updateAllTables();
-        triggerAutoSave();
-        showAlert('Enregistrement supprimé', 'success', 1000);
-    }
+  if (confirm('Êtes-vous sûr de vouloir supprimer cet enregistrement ?')) {
+    records = records.filter(r => r.id !== id);
+    updateAllTables();
+    triggerAutoSave();
+    showAlert('Enregistrement supprimé', 'success', 1000);
+  }
 }
 
 // === EXPORT ET UTILITAIRES ===
 
 function exporterCSV() {
-    if (records.length === 0) {
-        showAlert('Aucune donnée à exporter', 'warning', 2000);
-        return;
-    }
+  if (records.length === 0) {
+    showAlert('Aucune donnée à exporter', 'warning', 2000);
+    return;
+  }
     
-    const headers = 'N° Dossard,Type,Heure\n';
-    const csvContent = records
-        .sort((a, b) => a.timestamp - b.timestamp)
-        .map(record => `${record.dossard},${record.type},${record.heure}`)
-        .join('\n');
+  const headers = 'N° Dossard,Type,Heure\n';
+  const csvContent = records
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .map(record => `${record.dossard},${record.type},${record.heure}`)
+    .join('\n');
     
-    const blob = new Blob([headers + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
+  const blob = new Blob([headers + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
     
-    link.setAttribute('href', url);
-    link.setAttribute('download', `aquathlon_chronos_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`);
-    link.style.visibility = 'hidden';
+  link.setAttribute('href', url);
+  link.setAttribute('download', `aquathlon_chronos_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`);
+  link.style.visibility = 'hidden';
     
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
     
-    showAlert('Export CSV téléchargé !', 'success', 2000);
+  showAlert('Export CSV téléchargé !', 'success', 2000);
 }
 
 function exporterCSVPourSheets() {
-    if (records.length === 0) {
-        showAlert('Aucune donnée à exporter', 'warning', 2000);
-        return;
-    }
+  if (records.length === 0) {
+    showAlert('Aucune donnée à exporter', 'warning', 2000);
+    return;
+  }
     
-    const headers = 'Timestamp,N° Dossard,Type,Heure';
-    const csvContent = records
-        .sort((a, b) => a.timestamp - b.timestamp)
-        .map(record => {
-            const timestamp = new Date(record.timestamp).toISOString();
-            return `${timestamp},${record.dossard},${record.type},${record.heure}`;
-        })
-        .join('\n');
+  const headers = 'Timestamp,N° Dossard,Type,Heure';
+  const csvContent = records
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .map(record => {
+      const timestamp = new Date(record.timestamp).toISOString();
+      return `${timestamp},${record.dossard},${record.type},${record.heure}`;
+    })
+    .join('\n');
     
-    const fullCSV = headers + '\n' + csvContent;
+  const fullCSV = headers + '\n' + csvContent;
     
-    navigator.clipboard.writeText(fullCSV).then(() => {
-        showAlert('✅ CSV copié ! Collez-le dans votre Google Sheet (Ctrl+V)', 'success', 4000);
-    }).catch(() => {
-        showAlert('❌ Impossible de copier automatiquement', 'warning', 2000);
-    });
+  navigator.clipboard.writeText(fullCSV).then(() => {
+    showAlert('✅ CSV copié ! Collez-le dans votre Google Sheet (Ctrl+V)', 'success', 4000);
+  }).catch(() => {
+    showAlert('❌ Impossible de copier automatiquement', 'warning', 2000);
+  });
 }
 
 function exporterSauvegardeAuto() {
-    if (records.length === 0) {
-        showAlert('Aucune donnée à sauvegarder', 'warning', 2000);
-        return;
-    }
+  if (records.length === 0) {
+    showAlert('Aucune donnée à sauvegarder', 'warning', 2000);
+    return;
+  }
     
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const data = {
-        exportTime: new Date().toISOString(),
-        records: records,
-        totalRecords: records.length
-    };
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const data = {
+    exportTime: new Date().toISOString(),
+    records: records,
+    totalRecords: records.length
+  };
     
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
     
-    a.href = url;
-    a.download = `aquathlon_backup_${timestamp}.json`;
-    a.style.visibility = 'hidden';
+  a.href = url;
+  a.download = `aquathlon_backup_${timestamp}.json`;
+  a.style.visibility = 'hidden';
     
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
     
-    showAlert('Sauvegarde JSON téléchargée !', 'success', 2000);
+  showAlert('Sauvegarde JSON téléchargée !', 'success', 2000);
 }
 
 function viderDonnees() {
-    if (confirm('Êtes-vous sûr de vouloir supprimer tous les enregistrements ?')) {
-        records = [];
-        updateAllTables();
-        triggerAutoSave();
-        showAlert('Toutes les données ont été supprimées', 'success', 1500);
-    }
+  if (confirm('Êtes-vous sûr de vouloir supprimer tous les enregistrements ?')) {
+    records = [];
+    updateAllTables();
+    triggerAutoSave();
+    showAlert('Toutes les données ont été supprimées', 'success', 1500);
+  }
 }
 
 // === GESTION DU CLAVIER ===
 
 document.addEventListener('keydown', function(event) {
-    if (event.key === 'Enter') {
-        const activeElement = document.activeElement;
+  if (event.key === 'Enter') {
+    const activeElement = document.activeElement;
         
-        if (currentTab === 'start') {
-            if (activeElement.id === 'startDossard' || activeElement.tagName !== 'INPUT') {
-                event.preventDefault();
-                enregistrerDepart();
-            }
-        }
-        else if (currentTab === 'finish') {
-            if (activeElement.id === 'finishDossard' || activeElement.tagName !== 'INPUT') {
-                event.preventDefault();
-                enregistrerArrivee();
-            }
-        }
+    if (currentTab === 'start') {
+      if (activeElement.id === 'startDossard' || activeElement.tagName !== 'INPUT') {
+        event.preventDefault();
+        enregistrerDepart();
+      }
     }
+    else if (currentTab === 'finish') {
+      if (activeElement.id === 'finishDossard' || activeElement.tagName !== 'INPUT') {
+        event.preventDefault();
+        enregistrerArrivee();
+      }
+    }
+  }
 });
 
 // === INITIALISATION ===
 
 function startAutoBackup() {
-    setInterval(() => {
-        if (records.length > 0 && autoSaveEnabled) {
-            sauvegardeLocale();
-        }
-    }, BACKUP_CONFIG.localInterval);
+  setInterval(() => {
+    if (records.length > 0 && autoSaveEnabled) {
+      sauvegardeLocale();
+    }
+  }, BACKUP_CONFIG.localInterval);
     
-    setTimeout(() => {
-        if (records.length === 0) {
-            restaurerSauvegarde();
-        }
-    }, 1000);
+  setTimeout(() => {
+    if (records.length === 0) {
+      restaurerSauvegarde();
+    }
+  }, 1000);
 }
 
 window.onload = function() {
-    document.getElementById('startDossard').focus();
-    startAutoBackup();
-    updateTime();
-    setInterval(updateTime, 1000);
+  document.getElementById('startDossard').focus();
+  startAutoBackup();
+  updateTime();
+  setInterval(updateTime, 1000);
     
-    if (records.length === 0) {
-        setTimeout(restaurerSauvegarde, 500);
-    }
+  if (records.length === 0) {
+    setTimeout(restaurerSauvegarde, 500);
+  }
 };

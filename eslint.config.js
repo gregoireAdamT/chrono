@@ -1,11 +1,11 @@
-// eslint.config.js - ESLint v9+ Flat Config
+// eslint.config.js - ESLint v9+ Flat Config (ES Module)
 export default [
   // Base configuration for all JavaScript files
   {
     files: ['**/*.js'],
     languageOptions: {
       ecmaVersion: 2021,
-      sourceType: 'script', // or "module" if you use ES modules
+      sourceType: 'module', // Changed from "script" to "module"
       globals: {
         // Browser globals
         window: 'readonly',
@@ -13,11 +13,27 @@ export default [
         console: 'readonly',
         localStorage: 'readonly',
         fetch: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        URLSearchParams: 'readonly',
+        Image: 'readonly',
+        Blob: 'readonly',
+        URL: 'readonly',
+        navigator: 'readonly',
+        prompt: 'readonly',
+        confirm: 'readonly',
 
-        // Your chrono app globals
-        records: 'writable',
-        lastSyncCount: 'writable',
-        DEFAULT_WEBHOOK_URL: 'readonly',
+        // Google Apps Script globals (for apps-script.js)
+        SpreadsheetApp: 'readonly',
+        ContentService: 'readonly',
+        Utilities: 'readonly',
+        Session: 'readonly',
+
+        // Your chrono app globals - remove duplicates
+        // records: "writable", // Remove - let it be declared in code
+        // lastSyncCount: "writable", // Remove - let it be declared in code
+        // DEFAULT_WEBHOOK_URL: "readonly" // Remove - let it be declared in code
       },
     },
     rules: {
@@ -50,6 +66,15 @@ export default [
       indent: ['error', 2],
       quotes: ['error', 'single'],
       semi: ['error', 'always'],
+    },
+  },
+
+  // Configuration specific for Google Apps Script
+  {
+    files: ['**/apps-script.js'],
+    rules: {
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^(e|_)' }], // Ignore 'e' parameter
+      'no-undef': 'off', // Apps Script has many globals
     },
   },
 
