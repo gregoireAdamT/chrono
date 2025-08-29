@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Race timing application with webhook sync",
   "main": "index.html",
+  "type": "module",
   "scripts": {
     "lint": "eslint *.js",
     "lint:fix": "eslint *.js --fix",
