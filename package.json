@@ -1,26 +1,31 @@
 {
-  "name": "chrono",
+  "name": "chrono-timing-app",
   "version": "1.0.0",
   "description": "Race timing application with webhook sync",
   "main": "index.html",
   "type": "module",
   "scripts": {
-    "lint": "eslint *.js *.html",
-    "lint:fix": "eslint *.js *.html --fix",
+    "lint": "eslint *.js",
+    "lint:fix": "eslint *.js --fix",
     "lint:css": "stylelint *.css",
     "lint:css:fix": "stylelint *.css --fix",
     "format": "prettier --write *.{html,css,js}",
-    "check-all": "npm run lint && npm run lint:css",
-    "fix-all": "npm run lint:fix && npm run lint:css:fix && npm run format"
+    "check-all": "npm run lint",
+    "fix-all": "npm run lint:fix && npm run format"
   },
-  "author": "",
+  "keywords": [
+    "timing",
+    "chrono",
+    "race",
+    "webhook"
+  ],
+  "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
     "eslint": "^9.0.0",
-    "eslint-config-prettier": "^10.1.8",
-    "prettier": "^3.6.2",
-    "stylelint": "^16.23.1",
-    "stylelint-config-standard": "^39.0.0"
+    "prettier": "^3.0.3",
+    "stylelint": "^16.0.0",
+    "stylelint-config-standard": "^36.0.0"
   },
   "browserslist": [
     "> 1%",

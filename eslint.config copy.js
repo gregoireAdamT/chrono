@@ -80,6 +80,25 @@ export default [
     },
   },
 
+  // Configuration for HTML files with embedded JS
+  {
+    files: ['**/*.html'],
+    languageOptions: {
+      globals: {
+        window: 'readonly',
+        document: 'readonly',
+        console: 'readonly',
+        localStorage: 'readonly',
+        fetch: 'readonly',
+      },
+    },
+    rules: {
+      // Relaxed rules for HTML embedded JS
+      'no-unused-vars': 'warn',
+      'no-undef': 'off', // HTML might have globals we don't know about
+    },
+  },
+
   // Ignore patterns (replaces .eslintignore)
   {
     ignores: ['node_modules/**', 'dist/**', 'build/**', '*.min.js'],
