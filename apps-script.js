@@ -15,7 +15,7 @@ function doPost(e) {
         data = JSON.parse(e.postData.contents);
         console.log('Data depuis JSON:', data);
       } catch (jsonError) {
-        console.log('Pas de JSON valide dans contents');
+        console.log('Pas de JSON valide dans contents', jsonError);
       }
     }
 
@@ -81,7 +81,7 @@ function doPost(e) {
     });
 
     console.log(
-      `${count} records ajoutés (${departsCount} départs, ${arriveesCount} arrivées)`
+      `${count} records ajoutés (${departsCount} départs, ${arriveesCount} arrivées)`,
     );
 
     return ContentService.createTextOutput(
@@ -91,7 +91,7 @@ function doPost(e) {
         departs: departsCount,
         arrivees: arriveesCount,
         method: 'POST',
-      })
+      }),
     ).setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
     console.error('Erreur POST:', error);
@@ -100,7 +100,7 @@ function doPost(e) {
         success: false,
         error: error.toString(),
         method: 'POST',
-      })
+      }),
     ).setMimeType(ContentService.MimeType.JSON);
   }
 }
@@ -153,7 +153,7 @@ function doGet(e) {
             arriveesSheet.appendRow(row);
           } else {
             console.log(
-              `Record ${index} - Type non reconnu (image): "${record.type}"`
+              `Record ${index} - Type non reconnu (image): "${record.type}"`,
             );
           }
         });
@@ -163,7 +163,7 @@ function doGet(e) {
 
       // Retourner une image 1x1 transparente
       const transparentPixel = Utilities.base64Decode(
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
       );
       return Utilities.newBlob(transparentPixel, 'image/png');
     }
@@ -176,7 +176,7 @@ function doGet(e) {
           message: 'Webhook opérationnel',
           timestamp: new Date().toISOString(),
           methods: ['GET', 'POST', 'Image tracking'],
-        })
+        }),
       ).setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -239,7 +239,7 @@ function doGet(e) {
         departs: departsCount,
         arrivees: arriveesCount,
         method: 'GET',
-      })
+      }),
     ).setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
     console.error('Erreur GET:', error);
@@ -247,7 +247,7 @@ function doGet(e) {
     // En cas d'erreur dans image tracking, retourner quand même une image
     if (e.parameter && e.parameter.method === 'image') {
       const transparentPixel = Utilities.base64Decode(
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=='
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
       );
       return Utilities.newBlob(transparentPixel, 'image/png');
     }
@@ -257,7 +257,7 @@ function doGet(e) {
         success: false,
         error: error.toString(),
         method: 'GET',
-      })
+      }),
     ).setMimeType(ContentService.MimeType.JSON);
   }
 }
@@ -285,41 +285,152 @@ function getOrCreateSheet(spreadsheet, sheetName) {
   return sheet;
 }
 
-// Test avec les nouvelles méthodes
-function testNouvellesMethods() {
-  console.log('=== Test POST form-data ===');
-  const postResult = doPost({
-    parameter: {
-      data: JSON.stringify({
-        records: [
-          {
-            dossard: 'TEST-POST',
-            type: 'Test POST',
-            heure: new Date().toLocaleTimeString(),
-          },
-        ],
-      }),
-    },
-  });
-  console.log('POST result:', postResult.getContent());
+// Fonction pour configurer les en-têtes d'un onglet (version renforcée)
+function setupHeaders(sheet) {
+  try {
+    const headers = [
+      'Timestamp',
+      'N° Dossard',
+      'Type',
+      'Heure',
+      'Source',
+      'Reçu le',
+    ];
 
-  console.log('=== Test GET params ===');
-  const getResult = doGet({
-    parameter: {
-      data: JSON.stringify({
-        records: [
-          {
-            dossard: 'TEST-GET',
-            type: 'Test GET',
-            heure: new Date().toLocaleTimeString(),
-          },
-        ],
-      }),
-    },
-  });
-  console.log('GET result:', getResult.getContent());
+    // Ajouter les en-têtes avec vérification
+    const headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setValues([headers]);
+    console.log('Headers écrits:', headers);
+
+    // Mise en forme des en-têtes (avec gestion d'erreur)
+    try {
+      headerRange.setFontWeight('bold');
+      headerRange.setBackground('#4285f4');
+      headerRange.setFontColor('white');
+      console.log('Mise en forme des en-têtes appliquée');
+    } catch (formatError) {
+      console.log(
+        'Mise en forme des en-têtes échouée (pas grave):',
+        formatError,
+      );
+    }
+
+    // Auto-ajuster les colonnes (avec gestion d'erreur)
+    try {
+      sheet.autoResizeColumns(1, headers.length);
+      console.log('Colonnes auto-ajustées');
+    } catch (resizeError) {
+      console.log(
+        'Auto-ajustement des colonnes échoué (pas grave):',
+        resizeError,
+      );
+    }
+  } catch (error) {
+    console.error('Erreur dans setupHeaders:', error);
+    throw error;
+  }
 }
 
+// Fonction pour initialiser le spreadsheet et créer les onglets (VERSION CORRIGÉE)
+function initSpreadsheet() {
+  try {
+    // Ouvrir le spreadsheet
+    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    console.log('Spreadsheet ouvert:', spreadsheet.getName());
+
+    // Configuration des onglets
+    const ONGLETS_CONFIG = [
+      { nom: 'Chronos', description: 'Tous les enregistrements' },
+      { nom: 'Départs', description: 'Départs seulement' },
+      { nom: 'Arrivées', description: 'Arrivées seulement' },
+    ];
+
+    // Créer/vérifier chaque onglet
+    ONGLETS_CONFIG.forEach((config) => {
+      let sheet = null;
+
+      // CORRECTION: Vérifier si l'onglet existe (sans try/catch car getSheetByName peut retourner null)
+      sheet = spreadsheet.getSheetByName(config.nom);
+
+      if (sheet !== null) {
+        console.log(`Onglet '${config.nom}' existe déjà`);
+      } else {
+        // L'onglet n'existe pas, le créer
+        console.log(`Création de l'onglet '${config.nom}'...`);
+
+        try {
+          sheet = spreadsheet.insertSheet(config.nom);
+          if (sheet === null) {
+            // Fallback si insertSheet retourne null
+            sheet = spreadsheet.insertSheet();
+            if (sheet !== null) {
+              sheet.setName(config.nom);
+            }
+          }
+          console.log(`Onglet '${config.nom}' créé`);
+        } catch (insertError) {
+          console.error(`Erreur création onglet '${config.nom}':`, insertError);
+          // Essayer méthode alternative
+          try {
+            sheet = spreadsheet.insertSheet();
+            if (sheet !== null) {
+              sheet.setName(config.nom);
+              console.log(
+                `Onglet '${config.nom}' créé avec méthode alternative`,
+              );
+            }
+          } catch (altError) {
+            console.error(`Échec complet pour '${config.nom}':`, altError);
+            throw new Error(`Impossible de créer l'onglet '${config.nom}'`);
+          }
+        }
+      }
+
+      // Vérifier que sheet n'est pas null avant de continuer
+      if (sheet === null) {
+        throw new Error(`L'onglet '${config.nom}' est null après création`);
+      }
+
+      // Configurer les en-têtes si nécessaire (avec vérification supplémentaire)
+      try {
+        const lastRow = sheet.getLastRow();
+        console.log(`Onglet '${config.nom}' - dernière ligne: ${lastRow}`);
+
+        if (lastRow === 0) {
+          setupHeaders(sheet);
+          console.log(`En-têtes ajoutés à '${config.nom}'`);
+        } else {
+          console.log(
+            `Onglet '${config.nom}' a déjà des données (${lastRow} lignes)`,
+          );
+        }
+      } catch (headerError) {
+        console.error(
+          `Erreur lors de la configuration des en-têtes pour '${config.nom}':`,
+          headerError,
+        );
+        // Essayer de toute façon d'ajouter les en-têtes
+        try {
+          setupHeaders(sheet);
+          console.log(`En-têtes ajoutés à '${config.nom}' (après erreur)`);
+        } catch (retryError) {
+          console.error(
+            `Impossible d'ajouter les en-têtes à '${config.nom}':`,
+            retryError,
+          );
+          // Ne pas faire échouer tout le processus pour ça
+        }
+      }
+    });
+
+    return spreadsheet;
+  } catch (error) {
+    console.error('Erreur init spreadsheet:', error);
+    throw new Error(
+      `Impossible d'initialiser le Google Sheet. Erreur: ${error.toString()}`,
+    );
+  }
+}
 // Fonction pour initialiser le spreadsheet et créer les onglets
 /* function initSpreadsheet() {
   try {
@@ -394,9 +505,31 @@ function testNouvellesMethods() {
   }
 } */
 
-// Fonction pour configurer les en-têtes d'un onglet (version renforcée)
-function setupHeaders(sheet) {
+// FONCTION ALTERNATIVE: Créer les onglets manuellement un par un
+function creerOngletManuel(nomOnglet) {
   try {
+    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    console.log(`=== CRÉATION MANUELLE DE L'ONGLET: ${nomOnglet} ===`);
+
+    // Vérifier s'il existe déjà
+    let sheet = spreadsheet.getSheetByName(nomOnglet);
+
+    if (sheet !== null) {
+      console.log(`✅ L'onglet '${nomOnglet}' existe déjà`);
+      return sheet;
+    }
+
+    // Créer l'onglet
+    console.log(`🔧 Création de l'onglet '${nomOnglet}'...`);
+    sheet = spreadsheet.insertSheet(nomOnglet);
+
+    if (sheet === null) {
+      throw new Error(`insertSheet a retourné null pour '${nomOnglet}'`);
+    }
+
+    console.log(`✅ Onglet '${nomOnglet}' créé avec succès`);
+
+    // Ajouter les en-têtes
     const headers = [
       'Timestamp',
       'N° Dossard',
@@ -405,46 +538,22 @@ function setupHeaders(sheet) {
       'Source',
       'Reçu le',
     ];
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    console.log(`✅ En-têtes ajoutés à '${nomOnglet}'`);
 
-    // Ajouter les en-têtes avec vérification
-    const headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setValues([headers]);
-    console.log('Headers écrits:', headers);
-
-    // Mise en forme des en-têtes (avec gestion d'erreur)
-    try {
-      headerRange.setFontWeight('bold');
-      headerRange.setBackground('#4285f4');
-      headerRange.setFontColor('white');
-      console.log('Mise en forme des en-têtes appliquée');
-    } catch (formatError) {
-      console.log(
-        'Mise en forme des en-têtes échouée (pas grave):',
-        formatError
-      );
-    }
-
-    // Auto-ajuster les colonnes (avec gestion d'erreur)
-    try {
-      sheet.autoResizeColumns(1, headers.length);
-      console.log('Colonnes auto-ajustées');
-    } catch (resizeError) {
-      console.log(
-        'Auto-ajustement des colonnes échoué (pas grave):',
-        resizeError
-      );
-    }
+    return sheet;
   } catch (error) {
-    console.error('Erreur dans setupHeaders:', error);
+    console.error(`❌ Erreur création '${nomOnglet}':`, error);
     throw error;
   }
 }
 
 // NOUVELLE FONCTION: Création d'onglet pas à pas pour debug (VERSION CORRIGÉE)
+/* eslint-disable-next-line no-unused-vars */
 function creerOngletsUnParUn() {
   try {
     const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
-    console.log("=== CRÉATION D'ONGLETS ÉTAPE PAR ÉTAPE ===");
+    console.log('=== CRÉATION D\'ONGLETS ÉTAPE PAR ÉTAPE ===');
 
     const onglets = ['Chronos', 'Départs', 'Arrivées'];
 
@@ -502,7 +611,7 @@ function creerOngletsUnParUn() {
               const ancienNom = sheet.getName();
               sheet.setName(nomOnglet);
               console.log(
-                `✅ Méthode 3 réussie pour '${nomOnglet}' (renommé '${ancienNom}' → '${nomOnglet}')`
+                `✅ Méthode 3 réussie pour '${nomOnglet}' (renommé '${ancienNom}' → '${nomOnglet}')`,
               );
             } else {
               console.log('❌ Méthode 3: Aucun onglet existant trouvé');
@@ -516,7 +625,7 @@ function creerOngletsUnParUn() {
       // Vérifier que nous avons bien un onglet
       if (sheet === null) {
         console.log(
-          `❌ ÉCHEC TOTAL: Impossible de créer/accéder à l'onglet '${nomOnglet}'`
+          `❌ ÉCHEC TOTAL: Impossible de créer/accéder à l'onglet '${nomOnglet}'`,
         );
         continue;
       }
@@ -563,7 +672,7 @@ function creerOngletsUnParUn() {
           ];
           sheet.getRange('A1:F1').setValues([headers]);
           console.log(
-            `✅ En-têtes ajoutés par méthode alternative à '${nomOnglet}'`
+            `✅ En-têtes ajoutés par méthode alternative à '${nomOnglet}'`,
           );
         } catch (altError) {
           console.log(`❌ Échec total pour '${nomOnglet}': ${altError}`);
@@ -588,158 +697,52 @@ function creerOngletsUnParUn() {
   }
 }
 
-// Fonction pour initialiser le spreadsheet et créer les onglets (VERSION CORRIGÉE)
-function initSpreadsheet() {
-  try {
-    // Ouvrir le spreadsheet
-    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
-    console.log('Spreadsheet ouvert:', spreadsheet.getName());
+// Test avec les nouvelles méthodes
+/* eslint-disable-next-line no-unused-vars */
+function testNouvellesMethods() {
+  console.log('=== Test POST form-data ===');
+  const postResult = doPost({
+    parameter: {
+      data: JSON.stringify({
+        records: [
+          {
+            dossard: 'TEST-POST',
+            type: 'Test POST',
+            heure: new Date().toLocaleTimeString(),
+          },
+        ],
+      }),
+    },
+  });
+  console.log('POST result:', postResult.getContent());
 
-    // Configuration des onglets
-    const ONGLETS_CONFIG = [
-      { nom: 'Chronos', description: 'Tous les enregistrements' },
-      { nom: 'Départs', description: 'Départs seulement' },
-      { nom: 'Arrivées', description: 'Arrivées seulement' },
-    ];
-
-    // Créer/vérifier chaque onglet
-    ONGLETS_CONFIG.forEach((config) => {
-      let sheet = null;
-
-      // CORRECTION: Vérifier si l'onglet existe (sans try/catch car getSheetByName peut retourner null)
-      sheet = spreadsheet.getSheetByName(config.nom);
-
-      if (sheet !== null) {
-        console.log(`Onglet '${config.nom}' existe déjà`);
-      } else {
-        // L'onglet n'existe pas, le créer
-        console.log(`Création de l'onglet '${config.nom}'...`);
-
-        try {
-          sheet = spreadsheet.insertSheet(config.nom);
-          if (sheet === null) {
-            // Fallback si insertSheet retourne null
-            sheet = spreadsheet.insertSheet();
-            if (sheet !== null) {
-              sheet.setName(config.nom);
-            }
-          }
-          console.log(`Onglet '${config.nom}' créé`);
-        } catch (insertError) {
-          console.error(`Erreur création onglet '${config.nom}':`, insertError);
-          // Essayer méthode alternative
-          try {
-            sheet = spreadsheet.insertSheet();
-            if (sheet !== null) {
-              sheet.setName(config.nom);
-              console.log(
-                `Onglet '${config.nom}' créé avec méthode alternative`
-              );
-            }
-          } catch (altError) {
-            console.error(`Échec complet pour '${config.nom}':`, altError);
-            throw new Error(`Impossible de créer l'onglet '${config.nom}'`);
-          }
-        }
-      }
-
-      // Vérifier que sheet n'est pas null avant de continuer
-      if (sheet === null) {
-        throw new Error(`L'onglet '${config.nom}' est null après création`);
-      }
-
-      // Configurer les en-têtes si nécessaire (avec vérification supplémentaire)
-      try {
-        const lastRow = sheet.getLastRow();
-        console.log(`Onglet '${config.nom}' - dernière ligne: ${lastRow}`);
-
-        if (lastRow === 0) {
-          setupHeaders(sheet);
-          console.log(`En-têtes ajoutés à '${config.nom}'`);
-        } else {
-          console.log(
-            `Onglet '${config.nom}' a déjà des données (${lastRow} lignes)`
-          );
-        }
-      } catch (headerError) {
-        console.error(
-          `Erreur lors de la configuration des en-têtes pour '${config.nom}':`,
-          headerError
-        );
-        // Essayer de toute façon d'ajouter les en-têtes
-        try {
-          setupHeaders(sheet);
-          console.log(`En-têtes ajoutés à '${config.nom}' (après erreur)`);
-        } catch (retryError) {
-          console.error(
-            `Impossible d'ajouter les en-têtes à '${config.nom}':`,
-            retryError
-          );
-          // Ne pas faire échouer tout le processus pour ça
-        }
-      }
-    });
-
-    return spreadsheet;
-  } catch (error) {
-    console.error('Erreur init spreadsheet:', error);
-    throw new Error(
-      `Impossible d'initialiser le Google Sheet. Erreur: ${error.toString()}`
-    );
-  }
-}
-
-// FONCTION ALTERNATIVE: Créer les onglets manuellement un par un
-function creerOngletManuel(nomOnglet) {
-  try {
-    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
-    console.log(`=== CRÉATION MANUELLE DE L'ONGLET: ${nomOnglet} ===`);
-
-    // Vérifier s'il existe déjà
-    let sheet = spreadsheet.getSheetByName(nomOnglet);
-
-    if (sheet !== null) {
-      console.log(`✅ L'onglet '${nomOnglet}' existe déjà`);
-      return sheet;
-    }
-
-    // Créer l'onglet
-    console.log(`🔧 Création de l'onglet '${nomOnglet}'...`);
-    sheet = spreadsheet.insertSheet(nomOnglet);
-
-    if (sheet === null) {
-      throw new Error(`insertSheet a retourné null pour '${nomOnglet}'`);
-    }
-
-    console.log(`✅ Onglet '${nomOnglet}' créé avec succès`);
-
-    // Ajouter les en-têtes
-    const headers = [
-      'Timestamp',
-      'N° Dossard',
-      'Type',
-      'Heure',
-      'Source',
-      'Reçu le',
-    ];
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    console.log(`✅ En-têtes ajoutés à '${nomOnglet}'`);
-
-    return sheet;
-  } catch (error) {
-    console.error(`❌ Erreur création '${nomOnglet}':`, error);
-    throw error;
-  }
+  console.log('=== Test GET params ===');
+  const getResult = doGet({
+    parameter: {
+      data: JSON.stringify({
+        records: [
+          {
+            dossard: 'TEST-GET',
+            type: 'Test GET',
+            heure: new Date().toLocaleTimeString(),
+          },
+        ],
+      }),
+    },
+  });
+  console.log('GET result:', getResult.getContent());
 }
 
 // FONCTION POUR CRÉER LES 3 ONGLETS UN PAR UN
+/* eslint-disable-next-line no-unused-vars */
 function creerTousLesOnglets() {
   const onglets = ['Chronos', 'Départs', 'Arrivées'];
   const resultats = [];
 
   for (const nom of onglets) {
     try {
-      const sheet = creerOngletManuel(nom);
+      // const sheet = creerOngletManuel(nom);
+      creerOngletManuel(nom);
       resultats.push(`✅ ${nom}: OK`);
     } catch (error) {
       resultats.push(`❌ ${nom}: ${error.toString()}`);
@@ -753,12 +756,14 @@ function creerTousLesOnglets() {
 }
 
 // Fonction pour tester le script manuellement
+/* eslint-disable-next-line no-unused-vars */
 function testerScript() {
   try {
     console.log('=== DÉBUT DU TEST ===');
 
     // Tester l'initialisation du spreadsheet
-    const spreadsheet = initSpreadsheet();
+    //const spreadsheet = initSpreadsheet();
+    initSpreadsheet();
     console.log('✅ Spreadsheet initialisé avec succès');
 
     // Données de test
@@ -802,6 +807,7 @@ function testerScript() {
 }
 
 // Fonction d'initialisation manuelle (pour forcer la création des onglets)
+/* eslint-disable-next-line no-unused-vars */
 function initialiserOnglets() {
   try {
     const spreadsheet = initSpreadsheet();
@@ -815,6 +821,7 @@ function initialiserOnglets() {
 }
 
 // NOUVELLE FONCTION: Diagnostic complet
+/* eslint-disable-next-line no-unused-vars */
 function diagnosticComplet() {
   console.log('=== DIAGNOSTIC COMPLET ===');
   console.log('SHEET_ID:', SHEET_ID);
@@ -830,7 +837,7 @@ function diagnosticComplet() {
     // Test 2: Lecture
     const sheets = spreadsheet.getSheets();
     console.log('✅ Test 2 - Lecture: OK');
-    console.log("   Nombre d'onglets:", sheets.length);
+    console.log('   Nombre d\'onglets:', sheets.length);
 
     // Test 3: Écriture
     const firstSheet = sheets[0];
@@ -843,10 +850,10 @@ function diagnosticComplet() {
 
     if (error.toString().includes('Permission denied')) {
       console.log(
-        '💡 SOLUTION: Exécutez la fonction "autoriserPermissions" d\'abord'
+        '💡 SOLUTION: Exécutez la fonction "autoriserPermissions" d\'abord',
       );
     } else if (error.toString().includes('Invalid value')) {
-      console.log("💡 SOLUTION: Vérifiez que l'ID du Google Sheet est correct");
+      console.log('💡 SOLUTION: Vérifiez que l\'ID du Google Sheet est correct');
     }
 
     return `❌ ÉCHEC: ${error.toString()}`;

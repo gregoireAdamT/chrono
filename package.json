@@ -5,8 +5,8 @@
   "main": "index.html",
   "type": "module",
   "scripts": {
-    "lint": "eslint *.js",
-    "lint:fix": "eslint *.js --fix",
+    "lint": "eslint *.js *.html",
+    "lint:fix": "eslint *.js *.html --fix",
     "lint:css": "stylelint *.css",
     "lint:css:fix": "stylelint *.css --fix",
     "format": "prettier --write *.{html,css,js}",

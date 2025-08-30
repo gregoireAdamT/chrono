@@ -37,13 +37,15 @@ export default [
       },
     },
     rules: {
-      // Unused code detection
+      // Unused code detection - RELAXED for functions called externally
       'no-unused-vars': [
         'warn',
         {
           vars: 'all',
           args: 'after-used',
           ignoreRestSiblings: false,
+          varsIgnorePattern:
+            '^(test|creer|initialiser|diagnostic|switchTab|modifier|supprimer|exporter|vider|lastBackupTime|reject|sheet|spreadsheet)', // Extended pattern
         },
       ],
       'no-unreachable': 'error',
@@ -51,7 +53,7 @@ export default [
       // Code quality
       'no-console': 'off', // Keep console.log for your debugging
       'no-debugger': 'warn',
-      'no-alert': 'warn',
+      'no-alert': 'off', // Turn off prompt/confirm warnings
 
       // Best practices for timing app
       eqeqeq: 'error', // === instead of ==

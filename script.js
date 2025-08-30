@@ -1,5 +1,5 @@
 let records = [];
-let prochainDepartPrevu = null;
+//let prochainDepartPrevu = null;
 let autoSaveEnabled = true;
 let lastBackupTime = null;
 let webhook_url = '';
@@ -26,24 +26,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Gestion des onglets
 let currentTab = 'start';
-/* 
-function switchTab(tabName) {
+
+/* function switchTab(tabName) {
   // Masquer tous les contenus
-  document.querySelectorAll('.tab-content').forEach(content => {
+  document.querySelectorAll('.tab-content').forEach((content) => {
     content.classList.remove('active');
   });
-    
+
   // Désactiver tous les boutons
-  document.querySelectorAll('.tab-btn').forEach(btn => {
+  document.querySelectorAll('.tab-btn').forEach((btn) => {
     btn.classList.remove('active');
   });
-    
+
   // Activer l'onglet sélectionné
   document.getElementById(tabName + '-tab').classList.add('active');
   event.target.classList.add('active');
-    
+
   currentTab = tabName;
-    
+
   // Focus automatique sur le bon champ
   setTimeout(() => {
     if (tabName === 'start') {
@@ -52,8 +52,7 @@ function switchTab(tabName) {
       document.getElementById('finishDossard').focus();
     }
   }, 100);
-}
- */
+} */
 
 function switchTab(tabName) {
   // Masquer tous les contenus
@@ -169,7 +168,7 @@ function restaurerSauvegarde() {
         showAlert(
           `✅ ${records.length} enregistrements restaurés`,
           'success',
-          3000
+          3000,
         );
         return true;
       }
@@ -239,7 +238,8 @@ async function sendToWebhookViaGET(data) {
 
 // MÉTHODE 3: Image tracking (0% CORS)
 function sendViaImageTracking(data) {
-  return new Promise((resolve, reject) => {
+  //return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     console.log('=== IMAGE TRACKING ===');
     const img = new Image();
     const params = new URLSearchParams({
@@ -261,7 +261,7 @@ function sendViaImageTracking(data) {
     img.onerror = () => {
       clearTimeout(timeout);
       console.log(
-        'Image tracking "error" (mais peut avoir fonctionné côté serveur)'
+        'Image tracking "error" (mais peut avoir fonctionné côté serveur)',
       );
       resolve(true);
     };
@@ -275,7 +275,7 @@ function sendViaImageTracking(data) {
 
 async function testStep1() {
   if (!webhook_url) {
-    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
+    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
     return;
   }
 
@@ -310,7 +310,7 @@ async function testStep1() {
 
 async function testStep2() {
   if (!webhook_url) {
-    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
+    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
     return;
   }
 
@@ -345,7 +345,7 @@ async function testStep2() {
 
 async function testStep3() {
   if (!webhook_url) {
-    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
+    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
     return;
   }
 
@@ -365,12 +365,12 @@ async function testStep3() {
   try {
     await sendViaImageTracking(testData);
     updateBackupStatus(
-      '✅ Image tracking tenté (vérifiez dans le Google Sheet)'
+      '✅ Image tracking tenté (vérifiez dans le Google Sheet)',
     );
     showAlert(
       '✅ Méthode 3 (Image) tentée - vérifiez le Google Sheet !',
       'success',
-      4000
+      4000,
     );
   } catch (error) {
     console.error('Erreur test 3:', error);
@@ -468,7 +468,7 @@ async function syncViaWebhook() {
   console.log('   - lastSyncCount:', lastSyncCount);
   console.log(
     '   - Derniers records:',
-    records.slice(-3).map((r) => `${r.type} ${r.dossard}`)
+    records.slice(-3).map((r) => `${r.type} ${r.dossard}`),
   );
 
   // CORRECTION: Ne synchroniser que le DERNIER record ajouté
@@ -484,7 +484,7 @@ async function syncViaWebhook() {
   console.log(`🚀 SYNC INCRÉMENTALE - ${newRecords.length} nouveaux records`);
   console.log(
     '🔍 Records à synchroniser:',
-    newRecords.map((r) => `${r.type} ${r.dossard} à ${r.heure}`)
+    newRecords.map((r) => `${r.type} ${r.dossard} à ${r.heure}`),
   );
 
   try {
@@ -507,10 +507,10 @@ async function syncViaWebhook() {
       const oldLastSyncCount = lastSyncCount;
       lastSyncCount = records.length;
       updateBackupStatus(
-        `☁️ Sync incrémentale POST OK (+${newRecords.length})`
+        `☁️ Sync incrémentale POST OK (+${newRecords.length})`,
       );
       console.log(
-        `✅ Sync POST réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`
+        `✅ Sync POST réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`,
       );
 
       // Sauvegarder immédiatement pour ne pas perdre le compteur
@@ -524,7 +524,7 @@ async function syncViaWebhook() {
       lastSyncCount = records.length;
       updateBackupStatus(`☁️ Sync incrémentale GET OK (+${newRecords.length})`);
       console.log(
-        `✅ Sync GET réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`
+        `✅ Sync GET réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`,
       );
       sauvegardeLocale();
       return true;
@@ -535,7 +535,7 @@ async function syncViaWebhook() {
     lastSyncCount = records.length;
     updateBackupStatus(`☁️ Sync incrémentale image OK (+${newRecords.length})`);
     console.log(
-      `✅ Sync IMAGE réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`
+      `✅ Sync IMAGE réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`,
     );
     sauvegardeLocale();
     return true;
@@ -685,7 +685,7 @@ function exporterCSV() {
   link.setAttribute('href', url);
   link.setAttribute(
     'download',
-    `aquathlon_chronos_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`
+    `aquathlon_chronos_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`,
   );
   link.style.visibility = 'hidden';
 
@@ -720,7 +720,7 @@ function exporterCSVPourSheets() {
       showAlert(
         '✅ CSV copié ! Collez-le dans votre Google Sheet (Ctrl+V)',
         'success',
-        4000
+        4000,
       );
     })
     .catch(() => {
