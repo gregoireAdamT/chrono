@@ -1,11 +1,11 @@
 // SCRIPT GOOGLE APPS SCRIPT AVEC ONGLETS SÉPARÉS
 // Version qui alimente les 3 onglets
 
-const SHEET_ID = '1Pmow1wBR3D1paMLNWNDj6mPaPOiFXfw2iAHNkUg6f2A';
+const SHEET_ID = "1Pmow1wBR3D1paMLNWNDj6mPaPOiFXfw2iAHNkUg6f2A";
 
 function doPost(e) {
   try {
-    console.log('POST reçu:', e);
+    console.log("POST reçu:", e);
 
     let data;
 
@@ -13,9 +13,9 @@ function doPost(e) {
     if (e.postData && e.postData.contents) {
       try {
         data = JSON.parse(e.postData.contents);
-        console.log('Data depuis JSON:', data);
+        console.log("Data depuis JSON:", data);
       } catch (jsonError) {
-        console.log('Pas de JSON valide dans contents', jsonError);
+        console.log("Pas de JSON valide dans contents", jsonError);
       }
     }
 
@@ -23,23 +23,23 @@ function doPost(e) {
     if (!data && e.parameter && e.parameter.data) {
       try {
         data = JSON.parse(e.parameter.data);
-        console.log('Data depuis form-data:', data);
+        console.log("Data depuis form-data:", data);
       } catch (formError) {
-        console.log('Erreur parsing form-data:', formError);
+        console.log("Erreur parsing form-data:", formError);
       }
     }
 
     if (!data || !data.records) {
-      throw new Error('Aucune donnée trouvée');
+      throw new Error("Aucune donnée trouvée");
     }
 
     // Traiter les données dans les 3 onglets
     const ss = SpreadsheetApp.openById(SHEET_ID);
 
     // Créer/obtenir les onglets
-    let chronosSheet = getOrCreateSheet(ss, 'Chronos');
-    let departsSheet = getOrCreateSheet(ss, 'Départs');
-    let arriveesSheet = getOrCreateSheet(ss, 'Arrivées');
+    let chronosSheet = getOrCreateSheet(ss, "Chronos");
+    let departsSheet = getOrCreateSheet(ss, "Départs");
+    let arriveesSheet = getOrCreateSheet(ss, "Arrivées");
 
     let count = 0;
     let departsCount = 0;
@@ -54,10 +54,10 @@ function doPost(e) {
 
       const row = [
         new Date(),
-        record.dossard || 'N/A',
-        record.type || 'N/A',
-        record.heure || 'N/A',
-        data.source || 'chrono',
+        record.dossard || "N/A",
+        record.type || "N/A",
+        record.heure || "N/A",
+        data.source || "chrono",
       ];
 
       // Ajouter à l'onglet principal (tous les records)
@@ -67,11 +67,11 @@ function doPost(e) {
       // CORRECTION: Vérification stricte du type
       console.log(`Type détecté pour record ${index}: "${record.type}"`);
 
-      if (record.type === 'Départ') {
+      if (record.type === "Départ") {
         console.log(`Record ${index} ajouté aux DÉPARTS`);
         departsSheet.appendRow(row);
         departsCount++;
-      } else if (record.type === 'Arrivée') {
+      } else if (record.type === "Arrivée") {
         console.log(`Record ${index} ajouté aux ARRIVÉES`);
         arriveesSheet.appendRow(row);
         arriveesCount++;
@@ -90,16 +90,16 @@ function doPost(e) {
         count: count,
         departs: departsCount,
         arrivees: arriveesCount,
-        method: 'POST',
+        method: "POST",
       }),
     ).setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
-    console.error('Erreur POST:', error);
+    console.error("Erreur POST:", error);
     return ContentService.createTextOutput(
       JSON.stringify({
         success: false,
         error: error.toString(),
-        method: 'POST',
+        method: "POST",
       }),
     ).setMimeType(ContentService.MimeType.JSON);
   }
@@ -107,22 +107,22 @@ function doPost(e) {
 
 function doGet(e) {
   try {
-    console.log('GET reçu:', e);
-    console.log('Parameters:', e.parameter);
+    console.log("GET reçu:", e);
+    console.log("Parameters:", e.parameter);
 
     // Si c'est une requête image tracking
-    if (e.parameter && e.parameter.method === 'image') {
-      console.log('=== Image tracking request ===');
+    if (e.parameter && e.parameter.method === "image") {
+      console.log("=== Image tracking request ===");
 
       if (e.parameter.data) {
         const data = JSON.parse(e.parameter.data);
-        console.log('Data depuis image:', data);
+        console.log("Data depuis image:", data);
 
         // Traiter les données dans les 3 onglets
         const ss = SpreadsheetApp.openById(SHEET_ID);
-        let chronosSheet = getOrCreateSheet(ss, 'Chronos');
-        let departsSheet = getOrCreateSheet(ss, 'Départs');
-        let arriveesSheet = getOrCreateSheet(ss, 'Arrivées');
+        let chronosSheet = getOrCreateSheet(ss, "Chronos");
+        let departsSheet = getOrCreateSheet(ss, "Départs");
+        let arriveesSheet = getOrCreateSheet(ss, "Arrivées");
 
         let count = 0;
         data.records.forEach((record, index) => {
@@ -134,10 +134,10 @@ function doGet(e) {
 
           const row = [
             new Date(),
-            record.dossard || 'N/A',
-            record.type || 'N/A',
-            record.heure || 'N/A',
-            'image_tracking',
+            record.dossard || "N/A",
+            record.type || "N/A",
+            record.heure || "N/A",
+            "image_tracking",
           ];
 
           chronosSheet.appendRow(row);
@@ -145,10 +145,10 @@ function doGet(e) {
 
           console.log(`Type détecté pour record ${index}: "${record.type}"`);
 
-          if (record.type === 'Départ') {
+          if (record.type === "Départ") {
             console.log(`Record ${index} ajouté aux DÉPARTS (image)`);
             departsSheet.appendRow(row);
-          } else if (record.type === 'Arrivée') {
+          } else if (record.type === "Arrivée") {
             console.log(`Record ${index} ajouté aux ARRIVÉES (image)`);
             arriveesSheet.appendRow(row);
           } else {
@@ -163,9 +163,9 @@ function doGet(e) {
 
       // Retourner une image 1x1 transparente
       const transparentPixel = Utilities.base64Decode(
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
       );
-      return Utilities.newBlob(transparentPixel, 'image/png');
+      return Utilities.newBlob(transparentPixel, "image/png");
     }
 
     // Si pas de paramètres, retourner status
@@ -173,25 +173,25 @@ function doGet(e) {
       return ContentService.createTextOutput(
         JSON.stringify({
           success: true,
-          message: 'Webhook opérationnel',
+          message: "Webhook opérationnel",
           timestamp: new Date().toISOString(),
-          methods: ['GET', 'POST', 'Image tracking'],
+          methods: ["GET", "POST", "Image tracking"],
         }),
       ).setMimeType(ContentService.MimeType.JSON);
     }
 
     // Traiter les données envoyées via GET normal
     const data = JSON.parse(e.parameter.data);
-    console.log('Data depuis GET:', data);
+    console.log("Data depuis GET:", data);
 
     if (!data.records) {
-      throw new Error('Pas de records dans les données GET');
+      throw new Error("Pas de records dans les données GET");
     }
 
     const ss = SpreadsheetApp.openById(SHEET_ID);
-    let chronosSheet = getOrCreateSheet(ss, 'Chronos');
-    let departsSheet = getOrCreateSheet(ss, 'Départs');
-    let arriveesSheet = getOrCreateSheet(ss, 'Arrivées');
+    let chronosSheet = getOrCreateSheet(ss, "Chronos");
+    let departsSheet = getOrCreateSheet(ss, "Départs");
+    let arriveesSheet = getOrCreateSheet(ss, "Arrivées");
 
     let count = 0;
     let departsCount = 0;
@@ -206,10 +206,10 @@ function doGet(e) {
 
       const row = [
         new Date(),
-        record.dossard || 'N/A',
-        record.type || 'N/A',
-        record.heure || 'N/A',
-        'GET',
+        record.dossard || "N/A",
+        record.type || "N/A",
+        record.heure || "N/A",
+        "GET",
       ];
 
       chronosSheet.appendRow(row);
@@ -217,11 +217,11 @@ function doGet(e) {
 
       console.log(`GET Type détecté pour record ${index}: "${record.type}"`);
 
-      if (record.type === 'Départ') {
+      if (record.type === "Départ") {
         console.log(`GET Record ${index} ajouté aux DÉPARTS`);
         departsSheet.appendRow(row);
         departsCount++;
-      } else if (record.type === 'Arrivée') {
+      } else if (record.type === "Arrivée") {
         console.log(`GET Record ${index} ajouté aux ARRIVÉES`);
         arriveesSheet.appendRow(row);
         arriveesCount++;
@@ -238,25 +238,25 @@ function doGet(e) {
         count: count,
         departs: departsCount,
         arrivees: arriveesCount,
-        method: 'GET',
+        method: "GET",
       }),
     ).setMimeType(ContentService.MimeType.JSON);
   } catch (error) {
-    console.error('Erreur GET:', error);
+    console.error("Erreur GET:", error);
 
     // En cas d'erreur dans image tracking, retourner quand même une image
-    if (e.parameter && e.parameter.method === 'image') {
+    if (e.parameter && e.parameter.method === "image") {
       const transparentPixel = Utilities.base64Decode(
-        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==",
       );
-      return Utilities.newBlob(transparentPixel, 'image/png');
+      return Utilities.newBlob(transparentPixel, "image/png");
     }
 
     return ContentService.createTextOutput(
       JSON.stringify({
         success: false,
         error: error.toString(),
-        method: 'GET',
+        method: "GET",
       }),
     ).setMimeType(ContentService.MimeType.JSON);
   }
@@ -271,14 +271,14 @@ function getOrCreateSheet(spreadsheet, sheetName) {
     sheet = spreadsheet.insertSheet(sheetName);
 
     // Ajouter les en-têtes
-    const headers = ['Timestamp', 'N° Dossard', 'Type', 'Heure', 'Source'];
+    const headers = ["Timestamp", "N° Dossard", "Type", "Heure", "Source"];
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
 
     // Mise en forme
     const headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setFontWeight('bold');
-    headerRange.setBackground('#4285f4');
-    headerRange.setFontColor('white');
+    headerRange.setFontWeight("bold");
+    headerRange.setBackground("#4285f4");
+    headerRange.setFontColor("white");
     sheet.autoResizeColumns(1, headers.length);
   }
 
@@ -289,28 +289,28 @@ function getOrCreateSheet(spreadsheet, sheetName) {
 function setupHeaders(sheet) {
   try {
     const headers = [
-      'Timestamp',
-      'N° Dossard',
-      'Type',
-      'Heure',
-      'Source',
-      'Reçu le',
+      "Timestamp",
+      "N° Dossard",
+      "Type",
+      "Heure",
+      "Source",
+      "Reçu le",
     ];
 
     // Ajouter les en-têtes avec vérification
     const headerRange = sheet.getRange(1, 1, 1, headers.length);
     headerRange.setValues([headers]);
-    console.log('Headers écrits:', headers);
+    console.log("Headers écrits:", headers);
 
     // Mise en forme des en-têtes (avec gestion d'erreur)
     try {
-      headerRange.setFontWeight('bold');
-      headerRange.setBackground('#4285f4');
-      headerRange.setFontColor('white');
-      console.log('Mise en forme des en-têtes appliquée');
+      headerRange.setFontWeight("bold");
+      headerRange.setBackground("#4285f4");
+      headerRange.setFontColor("white");
+      console.log("Mise en forme des en-têtes appliquée");
     } catch (formatError) {
       console.log(
-        'Mise en forme des en-têtes échouée (pas grave):',
+        "Mise en forme des en-têtes échouée (pas grave):",
         formatError,
       );
     }
@@ -318,15 +318,15 @@ function setupHeaders(sheet) {
     // Auto-ajuster les colonnes (avec gestion d'erreur)
     try {
       sheet.autoResizeColumns(1, headers.length);
-      console.log('Colonnes auto-ajustées');
+      console.log("Colonnes auto-ajustées");
     } catch (resizeError) {
       console.log(
-        'Auto-ajustement des colonnes échoué (pas grave):',
+        "Auto-ajustement des colonnes échoué (pas grave):",
         resizeError,
       );
     }
   } catch (error) {
-    console.error('Erreur dans setupHeaders:', error);
+    console.error("Erreur dans setupHeaders:", error);
     throw error;
   }
 }
@@ -336,13 +336,13 @@ function initSpreadsheet() {
   try {
     // Ouvrir le spreadsheet
     const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
-    console.log('Spreadsheet ouvert:', spreadsheet.getName());
+    console.log("Spreadsheet ouvert:", spreadsheet.getName());
 
     // Configuration des onglets
     const ONGLETS_CONFIG = [
-      { nom: 'Chronos', description: 'Tous les enregistrements' },
-      { nom: 'Départs', description: 'Départs seulement' },
-      { nom: 'Arrivées', description: 'Arrivées seulement' },
+      { nom: "Chronos", description: "Tous les enregistrements" },
+      { nom: "Départs", description: "Départs seulement" },
+      { nom: "Arrivées", description: "Arrivées seulement" },
     ];
 
     // Créer/vérifier chaque onglet
@@ -425,7 +425,7 @@ function initSpreadsheet() {
 
     return spreadsheet;
   } catch (error) {
-    console.error('Erreur init spreadsheet:', error);
+    console.error("Erreur init spreadsheet:", error);
     throw new Error(
       `Impossible d'initialiser le Google Sheet. Erreur: ${error.toString()}`,
     );
@@ -531,12 +531,12 @@ function creerOngletManuel(nomOnglet) {
 
     // Ajouter les en-têtes
     const headers = [
-      'Timestamp',
-      'N° Dossard',
-      'Type',
-      'Heure',
-      'Source',
-      'Reçu le',
+      "Timestamp",
+      "N° Dossard",
+      "Type",
+      "Heure",
+      "Source",
+      "Reçu le",
     ];
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     console.log(`✅ En-têtes ajoutés à '${nomOnglet}'`);
@@ -553,9 +553,9 @@ function creerOngletManuel(nomOnglet) {
 function creerOngletsUnParUn() {
   try {
     const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
-    console.log('=== CRÉATION D\'ONGLETS ÉTAPE PAR ÉTAPE ===');
+    console.log("=== CRÉATION D'ONGLETS ÉTAPE PAR ÉTAPE ===");
 
-    const onglets = ['Chronos', 'Départs', 'Arrivées'];
+    const onglets = ["Chronos", "Départs", "Arrivées"];
 
     for (let i = 0; i < onglets.length; i++) {
       const nomOnglet = onglets[i];
@@ -577,7 +577,7 @@ function creerOngletsUnParUn() {
           if (sheet !== null) {
             console.log(`✅ Méthode 1 réussie pour '${nomOnglet}'`);
           } else {
-            console.log('❌ Méthode 1: insertSheet a retourné null');
+            console.log("❌ Méthode 1: insertSheet a retourné null");
           }
         } catch (e1) {
           console.log(`❌ Méthode 1 échouée: ${e1}`);
@@ -592,7 +592,7 @@ function creerOngletsUnParUn() {
               sheet.setName(nomOnglet);
               console.log(`✅ Méthode 2 réussie pour '${nomOnglet}'`);
             } else {
-              console.log('❌ Méthode 2: insertSheet() a retourné null');
+              console.log("❌ Méthode 2: insertSheet() a retourné null");
             }
           } catch (e2) {
             console.log(`❌ Méthode 2 échouée: ${e2}`);
@@ -614,7 +614,7 @@ function creerOngletsUnParUn() {
                 `✅ Méthode 3 réussie pour '${nomOnglet}' (renommé '${ancienNom}' → '${nomOnglet}')`,
               );
             } else {
-              console.log('❌ Méthode 3: Aucun onglet existant trouvé');
+              console.log("❌ Méthode 3: Aucun onglet existant trouvé");
             }
           } catch (e3) {
             console.log(`❌ Méthode 3 échouée: ${e3}`);
@@ -644,12 +644,12 @@ function creerOngletsUnParUn() {
           console.log(`🔧 Ajout des en-têtes à '${nomOnglet}'`);
 
           const headers = [
-            'Timestamp',
-            'N° Dossard',
-            'Type',
-            'Heure',
-            'Source',
-            'Reçu le',
+            "Timestamp",
+            "N° Dossard",
+            "Type",
+            "Heure",
+            "Source",
+            "Reçu le",
           ];
           sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
 
@@ -663,14 +663,14 @@ function creerOngletsUnParUn() {
         // Essayer de toute façon d'écrire les en-têtes
         try {
           const headers = [
-            'Timestamp',
-            'N° Dossard',
-            'Type',
-            'Heure',
-            'Source',
-            'Reçu le',
+            "Timestamp",
+            "N° Dossard",
+            "Type",
+            "Heure",
+            "Source",
+            "Reçu le",
           ];
-          sheet.getRange('A1:F1').setValues([headers]);
+          sheet.getRange("A1:F1").setValues([headers]);
           console.log(
             `✅ En-têtes ajoutés par méthode alternative à '${nomOnglet}'`,
           );
@@ -683,16 +683,16 @@ function creerOngletsUnParUn() {
       Utilities.sleep(1000);
     }
 
-    console.log('\n=== RÉSUMÉ ===');
+    console.log("\n=== RÉSUMÉ ===");
     const allSheets = spreadsheet.getSheets();
     console.log(`Nombre total d'onglets: ${allSheets.length}`);
     allSheets.forEach((s, idx) => {
       console.log(`  ${idx + 1}. ${s.getName()} (${s.getLastRow()} lignes)`);
     });
 
-    return '✅ Création terminée - Vérifiez les logs pour les détails';
+    return "✅ Création terminée - Vérifiez les logs pour les détails";
   } catch (error) {
-    console.error('❌ Erreur globale:', error);
+    console.error("❌ Erreur globale:", error);
     return `❌ ERREUR: ${error.toString()}`;
   }
 }
@@ -700,43 +700,43 @@ function creerOngletsUnParUn() {
 // Test avec les nouvelles méthodes
 /* eslint-disable-next-line no-unused-vars */
 function testNouvellesMethods() {
-  console.log('=== Test POST form-data ===');
+  console.log("=== Test POST form-data ===");
   const postResult = doPost({
     parameter: {
       data: JSON.stringify({
         records: [
           {
-            dossard: 'TEST-POST',
-            type: 'Test POST',
+            dossard: "TEST-POST",
+            type: "Test POST",
             heure: new Date().toLocaleTimeString(),
           },
         ],
       }),
     },
   });
-  console.log('POST result:', postResult.getContent());
+  console.log("POST result:", postResult.getContent());
 
-  console.log('=== Test GET params ===');
+  console.log("=== Test GET params ===");
   const getResult = doGet({
     parameter: {
       data: JSON.stringify({
         records: [
           {
-            dossard: 'TEST-GET',
-            type: 'Test GET',
+            dossard: "TEST-GET",
+            type: "Test GET",
             heure: new Date().toLocaleTimeString(),
           },
         ],
       }),
     },
   });
-  console.log('GET result:', getResult.getContent());
+  console.log("GET result:", getResult.getContent());
 }
 
 // FONCTION POUR CRÉER LES 3 ONGLETS UN PAR UN
 /* eslint-disable-next-line no-unused-vars */
 function creerTousLesOnglets() {
-  const onglets = ['Chronos', 'Départs', 'Arrivées'];
+  const onglets = ["Chronos", "Départs", "Arrivées"];
   const resultats = [];
 
   for (const nom of onglets) {
@@ -749,22 +749,22 @@ function creerTousLesOnglets() {
     }
   }
 
-  console.log('=== RÉSULTATS ===');
+  console.log("=== RÉSULTATS ===");
   resultats.forEach((r) => console.log(r));
 
-  return resultats.join('\n');
+  return resultats.join("\n");
 }
 
 // Fonction pour tester le script manuellement
 /* eslint-disable-next-line no-unused-vars */
 function testerScript() {
   try {
-    console.log('=== DÉBUT DU TEST ===');
+    console.log("=== DÉBUT DU TEST ===");
 
     // Tester l'initialisation du spreadsheet
     //const spreadsheet = initSpreadsheet();
     initSpreadsheet();
-    console.log('✅ Spreadsheet initialisé avec succès');
+    console.log("✅ Spreadsheet initialisé avec succès");
 
     // Données de test
     const testData = {
@@ -772,20 +772,20 @@ function testerScript() {
       records: [
         {
           id: 1,
-          dossard: '001',
-          type: 'Départ',
-          heure: '10:00:15',
+          dossard: "001",
+          type: "Départ",
+          heure: "10:00:15",
           timestamp: Date.now(),
         },
         {
           id: 2,
-          dossard: '001',
-          type: 'Arrivée',
-          heure: '10:25:30',
+          dossard: "001",
+          type: "Arrivée",
+          heure: "10:25:30",
           timestamp: Date.now() + 1000000,
         },
       ],
-      source: 'test_manuel',
+      source: "test_manuel",
     };
 
     // Simuler un POST request
@@ -796,12 +796,12 @@ function testerScript() {
     };
 
     const result = doPost(mockEvent);
-    console.log('✅ Test réussi !');
-    console.log('Résultat:', result.getContent());
+    console.log("✅ Test réussi !");
+    console.log("Résultat:", result.getContent());
 
-    return '✅ TOUT FONCTIONNE !';
+    return "✅ TOUT FONCTIONNE !";
   } catch (error) {
-    console.error('❌ Erreur de test:', error);
+    console.error("❌ Erreur de test:", error);
     return `❌ ERREUR: ${error.toString()}`;
   }
 }
@@ -811,11 +811,11 @@ function testerScript() {
 function initialiserOnglets() {
   try {
     const spreadsheet = initSpreadsheet();
-    console.log('✅ Onglets initialisés avec succès');
-    console.log('📊 Accédez à votre Google Sheet:', spreadsheet.getUrl());
+    console.log("✅ Onglets initialisés avec succès");
+    console.log("📊 Accédez à votre Google Sheet:", spreadsheet.getUrl());
     return spreadsheet.getUrl();
   } catch (error) {
-    console.error('❌ Erreur initialisation:', error);
+    console.error("❌ Erreur initialisation:", error);
     throw error;
   }
 }
@@ -823,37 +823,37 @@ function initialiserOnglets() {
 // NOUVELLE FONCTION: Diagnostic complet
 /* eslint-disable-next-line no-unused-vars */
 function diagnosticComplet() {
-  console.log('=== DIAGNOSTIC COMPLET ===');
-  console.log('SHEET_ID:', SHEET_ID);
-  console.log('User email:', Session.getActiveUser().getEmail());
+  console.log("=== DIAGNOSTIC COMPLET ===");
+  console.log("SHEET_ID:", SHEET_ID);
+  console.log("User email:", Session.getActiveUser().getEmail());
 
   try {
     // Test 1: Accès de base
     const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
-    console.log('✅ Test 1 - Accès de base: OK');
-    console.log('   Nom:', spreadsheet.getName());
-    console.log('   URL:', spreadsheet.getUrl());
+    console.log("✅ Test 1 - Accès de base: OK");
+    console.log("   Nom:", spreadsheet.getName());
+    console.log("   URL:", spreadsheet.getUrl());
 
     // Test 2: Lecture
     const sheets = spreadsheet.getSheets();
-    console.log('✅ Test 2 - Lecture: OK');
-    console.log('   Nombre d\'onglets:', sheets.length);
+    console.log("✅ Test 2 - Lecture: OK");
+    console.log("   Nombre d'onglets:", sheets.length);
 
     // Test 3: Écriture
     const firstSheet = sheets[0];
-    firstSheet.getRange('A2').setValue('Test diagnostic - ' + new Date());
-    console.log('✅ Test 3 - Écriture: OK');
+    firstSheet.getRange("A2").setValue("Test diagnostic - " + new Date());
+    console.log("✅ Test 3 - Écriture: OK");
 
-    return '✅ TOUS LES TESTS SONT PASSÉS !';
+    return "✅ TOUS LES TESTS SONT PASSÉS !";
   } catch (error) {
-    console.error('❌ Diagnostic échoué:', error);
+    console.error("❌ Diagnostic échoué:", error);
 
-    if (error.toString().includes('Permission denied')) {
+    if (error.toString().includes("Permission denied")) {
       console.log(
         '💡 SOLUTION: Exécutez la fonction "autoriserPermissions" d\'abord',
       );
-    } else if (error.toString().includes('Invalid value')) {
-      console.log('💡 SOLUTION: Vérifiez que l\'ID du Google Sheet est correct');
+    } else if (error.toString().includes("Invalid value")) {
+      console.log("💡 SOLUTION: Vérifiez que l'ID du Google Sheet est correct");
     }
 
     return `❌ ÉCHEC: ${error.toString()}`;

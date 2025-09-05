@@ -263,19 +263,125 @@ tr:hover {
   background: #f8f9fa;
 }
 
-/* Styles pour la section de sauvegarde */
+/* === SECTION BACKUP AVEC ANIMATION === */
 .backup-section {
-  background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
-  border-radius: 15px;
-  padding: 25px;
-  margin-bottom: 30px;
-  color: white;
+  max-height: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.4s ease-out,
+    padding 0.4s ease-out,
+    margin 0.4s ease-out;
+  opacity: 0;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Classe pour cacher la section backup */
+.backup-section.hidden {
+  display: none;
+}
+
+.backup-toggle-container {
+  margin: 15px 0;
+  user-select: none;
+}
+
+.backup-toggle-btn {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.backup-toggle-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.backup-toggle-btn:active {
+  transform: scale(0.98);
+}
+
+/* Icône carret animée */
+.toggle-caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 6px solid #666;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  margin-right: 8px;
+  transition: transform 0.3s ease;
+  transform-origin: 3px center;
+}
+
+.backup-toggle-btn:hover .toggle-caret {
+  border-left-color: #333;
+}
+
+/* Carret pointant vers le bas quand ouvert */
+.backup-toggle-btn.expanded .toggle-caret {
+  transform: rotate(90deg);
+}
+
+/* Label du bouton */
+.toggle-label {
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.backup-section.expanded {
+  max-height: 800px; /* Ajustez selon votre contenu */
+  opacity: 1;
+  padding: 20px;
+  margin: 10px 0;
+}
+
+/* Animation subtile pour le contenu */
+.backup-section.expanded > * {
+  animation: fade-in-content 0.5s ease-out 0.2s both;
+}
+
+@keyframes fade-in-content {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Style optionnel pour distinguer la section avancée */
+.backup-section::before {
+  content: '⚙️ Options avancées';
+  display: block;
+  font-size: 12px;
+  color: black;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.backup-section:not(.expanded)::before {
+  display: none;
 }
 
 .backup-section h3,
 .backup-section h4 {
   margin-bottom: 15px;
-  color: white;
+  color: #888;
 }
 
 .backup-config {
@@ -519,4 +625,72 @@ tr:hover {
   .time-display {
     font-size: 1.5em;
   }
+}
+
+/* === STYLES POUR FEEDBACK VISUEL ENTER === */
+
+/* Style des sections quand elles ont le focus */
+.tab-content:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Animation subtile sur Enter */
+.input-group input:focus {
+  box-shadow: 0 0 0 3px rgb(0 123 255 / 25%);
+  border-color: #007bff;
+}
+
+/* Indication visuelle que Enter est disponible */
+.tab-content::after {
+  content: 'Appuyez sur Enter pour enregistrer';
+  position: absolute;
+  bottom: 10px;
+  right: 15px;
+  font-size: 11px;
+  color: #999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.tab-content:focus::after {
+  opacity: 1;
+}
+
+/* Style pour les inputs avec indication Enter */
+.input-group {
+  position: relative;
+}
+
+.input-group::after {
+  content: '↵';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #ccc;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.input-group input:focus + ::after,
+.input-group:focus-within::after {
+  color: #007bff;
+}
+
+/* Animation flash sur enregistrement réussi */
+@keyframes record-flash {
+  0% {
+    background-color: #d4edda;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.record-success-flash {
+  animation: record-flash 0.5s ease-out;
 }

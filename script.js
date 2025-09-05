@@ -168,7 +168,7 @@ function restaurerSauvegarde() {
         showAlert(
           `✅ ${records.length} enregistrements restaurés`,
           'success',
-          3000,
+          3000
         );
         return true;
       }
@@ -261,7 +261,7 @@ function sendViaImageTracking(data) {
     img.onerror = () => {
       clearTimeout(timeout);
       console.log(
-        'Image tracking "error" (mais peut avoir fonctionné côté serveur)',
+        'Image tracking "error" (mais peut avoir fonctionné côté serveur)'
       );
       resolve(true);
     };
@@ -275,7 +275,7 @@ function sendViaImageTracking(data) {
 
 async function testStep1() {
   if (!webhook_url) {
-    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
+    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
     return;
   }
 
@@ -310,7 +310,7 @@ async function testStep1() {
 
 async function testStep2() {
   if (!webhook_url) {
-    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
+    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
     return;
   }
 
@@ -345,7 +345,7 @@ async function testStep2() {
 
 async function testStep3() {
   if (!webhook_url) {
-    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
+    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
     return;
   }
 
@@ -365,12 +365,12 @@ async function testStep3() {
   try {
     await sendViaImageTracking(testData);
     updateBackupStatus(
-      '✅ Image tracking tenté (vérifiez dans le Google Sheet)',
+      '✅ Image tracking tenté (vérifiez dans le Google Sheet)'
     );
     showAlert(
       '✅ Méthode 3 (Image) tentée - vérifiez le Google Sheet !',
       'success',
-      4000,
+      4000
     );
   } catch (error) {
     console.error('Erreur test 3:', error);
@@ -468,7 +468,7 @@ async function syncViaWebhook() {
   console.log('   - lastSyncCount:', lastSyncCount);
   console.log(
     '   - Derniers records:',
-    records.slice(-3).map((r) => `${r.type} ${r.dossard}`),
+    records.slice(-3).map((r) => `${r.type} ${r.dossard}`)
   );
 
   // CORRECTION: Ne synchroniser que le DERNIER record ajouté
@@ -484,7 +484,7 @@ async function syncViaWebhook() {
   console.log(`🚀 SYNC INCRÉMENTALE - ${newRecords.length} nouveaux records`);
   console.log(
     '🔍 Records à synchroniser:',
-    newRecords.map((r) => `${r.type} ${r.dossard} à ${r.heure}`),
+    newRecords.map((r) => `${r.type} ${r.dossard} à ${r.heure}`)
   );
 
   try {
@@ -507,10 +507,10 @@ async function syncViaWebhook() {
       const oldLastSyncCount = lastSyncCount;
       lastSyncCount = records.length;
       updateBackupStatus(
-        `☁️ Sync incrémentale POST OK (+${newRecords.length})`,
+        `☁️ Sync incrémentale POST OK (+${newRecords.length})`
       );
       console.log(
-        `✅ Sync POST réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`,
+        `✅ Sync POST réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`
       );
 
       // Sauvegarder immédiatement pour ne pas perdre le compteur
@@ -524,7 +524,7 @@ async function syncViaWebhook() {
       lastSyncCount = records.length;
       updateBackupStatus(`☁️ Sync incrémentale GET OK (+${newRecords.length})`);
       console.log(
-        `✅ Sync GET réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`,
+        `✅ Sync GET réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`
       );
       sauvegardeLocale();
       return true;
@@ -535,7 +535,7 @@ async function syncViaWebhook() {
     lastSyncCount = records.length;
     updateBackupStatus(`☁️ Sync incrémentale image OK (+${newRecords.length})`);
     console.log(
-      `✅ Sync IMAGE réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`,
+      `✅ Sync IMAGE réussie - lastSyncCount: ${oldLastSyncCount} → ${lastSyncCount}`
     );
     sauvegardeLocale();
     return true;
@@ -685,7 +685,7 @@ function exporterCSV() {
   link.setAttribute('href', url);
   link.setAttribute(
     'download',
-    `aquathlon_chronos_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`,
+    `aquathlon_chronos_${new Date().toLocaleDateString('fr-FR').replace(/\//g, '-')}.csv`
   );
   link.style.visibility = 'hidden';
 
@@ -720,7 +720,7 @@ function exporterCSVPourSheets() {
       showAlert(
         '✅ CSV copié ! Collez-le dans votre Google Sheet (Ctrl+V)',
         'success',
-        4000,
+        4000
       );
     })
     .catch(() => {
@@ -822,3 +822,152 @@ window.onload = function () {
     setTimeout(restaurerSauvegarde, 500);
   }
 };
+function toggleBackupSection() {
+  const backupSection = document.querySelector('.backup-section');
+  const toggleBtn = document.querySelector('.backup-toggle-btn');
+
+  // Toggle des classes
+  backupSection.classList.toggle('expanded');
+  toggleBtn.classList.toggle('expanded');
+
+  // Optionnel : Log pour debug
+  console.log(
+    'Backup section:',
+    backupSection.classList.contains('expanded') ? 'ouvert' : 'fermé'
+  );
+}
+
+// Optionnel : Initialisation au chargement de la page
+document.addEventListener('DOMContentLoaded', function () {
+  // S'assurer que la section est fermée au démarrage
+  const backupSection = document.querySelector('.backup-section');
+  const toggleBtn = document.querySelector('.backup-toggle-btn');
+
+  if (backupSection && toggleBtn) {
+    backupSection.classList.remove('expanded');
+    toggleBtn.classList.remove('expanded');
+    console.log('🔒 Backup section initialisée (fermée)');
+  }
+});
+
+// === GESTION TOUCHE ENTER POUR DOSSARDS === //
+
+// Fonction pour gérer Enter sur les champs de dossard
+function handleDossardEnter(event, type) {
+  // Vérifier si c'est bien la touche Enter
+  if (event.key === 'Enter' || event.keyCode === 13) {
+    event.preventDefault(); // Empêcher le comportement par défaut
+
+    if (type === 'start') {
+      enregistrerDepart();
+    } else if (type === 'finish') {
+      enregistrerArrivee();
+    }
+
+    console.log(`🚀 Enter pressé sur ${type} - Enregistrement déclenché`);
+  }
+}
+
+// Fonction pour gérer Enter quand le focus est sur une section
+function handleSectionEnter(event, type) {
+  if (event.key === 'Enter' || event.keyCode === 13) {
+    // Vérifier que le focus n'est pas sur un input (éviter double déclenchement)
+    if (event.target.tagName.toLowerCase() !== 'input') {
+      event.preventDefault();
+
+      if (type === 'start') {
+        // Focus sur le champ dossard départ et déclencher si rempli
+        const startInput = document.getElementById('startDossard');
+        if (startInput.value.trim()) {
+          enregistrerDepart();
+        } else {
+          startInput.focus();
+        }
+      } else if (type === 'finish') {
+        // Focus sur le champ dossard arrivée et déclencher si rempli
+        const finishInput = document.getElementById('finishDossard');
+        if (finishInput.value.trim()) {
+          enregistrerArrivee();
+        } else {
+          finishInput.focus();
+        }
+      }
+
+      console.log(`🎯 Enter pressé sur section ${type}`);
+    }
+  }
+}
+
+// Fonction d'initialisation des event listeners
+function initializeEnterHandlers() {
+  // Event listeners pour les champs input
+  const startInput = document.getElementById('startDossard');
+  const finishInput = document.getElementById('finishDossard');
+
+  if (startInput) {
+    startInput.addEventListener('keydown', function (event) {
+      handleDossardEnter(event, 'start');
+    });
+  }
+
+  if (finishInput) {
+    finishInput.addEventListener('keydown', function (event) {
+      handleDossardEnter(event, 'finish');
+    });
+  }
+
+  // Event listeners pour les sections (divs tab-content)
+  const startSection = document.getElementById('start-tab');
+  const finishSection = document.getElementById('finish-tab');
+
+  if (startSection) {
+    // Rendre la div focusable
+    startSection.setAttribute('tabindex', '0');
+    startSection.addEventListener('keydown', function (event) {
+      handleSectionEnter(event, 'start');
+    });
+  }
+
+  if (finishSection) {
+    // Rendre la div focusable
+    finishSection.setAttribute('tabindex', '0');
+    finishSection.addEventListener('keydown', function (event) {
+      handleSectionEnter(event, 'finish');
+    });
+  }
+
+  console.log('✅ Event listeners Enter initialisés');
+}
+
+// Fonction améliorée pour les fonctions existantes (à ajouter à vos fonctions)
+function enregistrerDepartAvecFocus() {
+  enregistrerDepart();
+
+  // Remettre le focus sur le champ après enregistrement
+  setTimeout(() => {
+    const startInput = document.getElementById('startDossard');
+    if (startInput) {
+      startInput.focus();
+      startInput.select(); // Sélectionner le texte pour remplacement rapide
+    }
+  }, 100);
+}
+
+function enregistrerArriveeAvecFocus() {
+  enregistrerArrivee();
+
+  // Remettre le focus sur le champ après enregistrement
+  setTimeout(() => {
+    const finishInput = document.getElementById('finishDossard');
+    if (finishInput) {
+      finishInput.focus();
+      finishInput.select(); // Sélectionner le texte pour remplacement rapide
+    }
+  }, 100);
+}
+
+// Initialiser au chargement de la page
+document.addEventListener('DOMContentLoaded', function () {
+  initializeEnterHandlers();
+  console.log('🎮 Gestion Enter activée - Workflow rapide prêt !');
+});
