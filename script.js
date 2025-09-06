@@ -445,7 +445,7 @@ function enregistrerArrivee() {
 
   // DEBUG: Vérifier le record créé
   const dernierRecord = records[records.length - 1];
-  console.log('🐛 DEBUG - Record arrivée créé:', dernierRecord);
+  console.log('🐛 DEBUG - Record arrivée créé :', dernierRecord);
   console.log('🐛 DEBUG - Type exact:', `"${dernierRecord.type}"`);
 
   updateAllTables();
