@@ -275,7 +275,7 @@ function sendViaImageTracking(data) {
 
 async function testStep1() {
   if (!webhook_url) {
-    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
+    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
     return;
   }
 
@@ -310,7 +310,7 @@ async function testStep1() {
 
 async function testStep2() {
   if (!webhook_url) {
-    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
+    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
     return;
   }
 
@@ -345,7 +345,7 @@ async function testStep2() {
 
 async function testStep3() {
   if (!webhook_url) {
-    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
+    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
     return;
   }
 
@@ -584,7 +584,6 @@ function updateStartRecordsTable() {
             <td>${record.heure}</td>
             <td>
                 <button class="btn edit-btn" onclick="modifierRecord(${record.id})">✏️</button>
-                <button class="btn delete-btn" onclick="supprimerRecord(${record.id})">🗑️</button>
             </td>
         `;
   });
@@ -608,7 +607,6 @@ function updateFinishRecordsTable() {
             <td>${record.heure}</td>
             <td>
                 <button class="btn edit-btn" onclick="modifierRecord(${record.id})">✏️</button>
-                <button class="btn delete-btn" onclick="supprimerRecord(${record.id})">🗑️</button>
             </td>
         `;
   });
@@ -630,13 +628,12 @@ function updateRecordsTable() {
             <td>${record.heure}</td>
             <td>
                 <button class="btn edit-btn" onclick="modifierRecord(${record.id})">✏️</button>
-                <button class="btn delete-btn" onclick="supprimerRecord(${record.id})">🗑️</button>
             </td>
         `;
   });
 }
 
-function modifierRecord(id) {
+/* function modifierRecord(id) {
   const record = records.find((r) => r.id === id);
   if (record) {
     const nouveauDossard = prompt('Nouveau numéro de dossard:', record.dossard);
@@ -651,14 +648,36 @@ function modifierRecord(id) {
     triggerAutoSave();
     showAlert('Enregistrement modifié', 'success', 1000);
   }
-}
+} */
 
-function supprimerRecord(id) {
-  if (confirm('Êtes-vous sûr de vouloir supprimer cet enregistrement ?')) {
-    records = records.filter((r) => r.id !== id);
-    updateAllTables();
-    triggerAutoSave();
-    showAlert('Enregistrement supprimé', 'success', 1000);
+function modifierRecord(id) {
+  const record = records.find((r) => r.id === id);
+  if (record) {
+    const dossardActuel = record.dossard;
+    const heureActuelle = record.heure;
+
+    // Demander seulement le nouveau dossard (temps conservé)
+    const nouveauDossard = prompt(
+      `Modifier le dossard (temps conservé: ${heureActuelle})`,
+      dossardActuel
+    );
+
+    if (nouveauDossard && nouveauDossard !== dossardActuel) {
+      // Créer un nouveau record avec même ID système mais nouveau dossard
+      const nouveauRecord = {
+        id: Date.now(), // Nouvel ID unique
+        dossard: nouveauDossard,
+        heure: heureActuelle, // Conserver l'heure originale
+        type: record.type,
+      };
+
+      // Ajouter comme nouvelle entrée
+      records.unshift(nouveauRecord);
+
+      updateAllTables();
+      triggerAutoSave();
+      showAlert('Correction créée (nouveau dossard)', 'success', 2000);
+    }
   }
 }
 
@@ -854,9 +873,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Fonction pour gérer Enter sur les champs de dossard
 function handleDossardEnter(event, type) {
-  // Vérifier si c'est bien la touche Enter
   if (event.key === 'Enter' || event.keyCode === 13) {
     event.preventDefault(); // Empêcher le comportement par défaut
+    event.stopPropagation(); // ← AJOUT : Empêcher la propagation vers la section
 
     if (type === 'start') {
       enregistrerDepart();
