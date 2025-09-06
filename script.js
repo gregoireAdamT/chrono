@@ -275,7 +275,7 @@ function sendViaImageTracking(data) {
 
 async function testStep1() {
   if (!webhook_url) {
-    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
+    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
     return;
   }
 
@@ -310,7 +310,7 @@ async function testStep1() {
 
 async function testStep2() {
   if (!webhook_url) {
-    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
+    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
     return;
   }
 
@@ -345,7 +345,7 @@ async function testStep2() {
 
 async function testStep3() {
   if (!webhook_url) {
-    showAlert("Configurez d'abord l'URL du webhook", 'warning', 3000);
+    showAlert('Configurez d\'abord l\'URL du webhook', 'warning', 3000);
     return;
   }
 
