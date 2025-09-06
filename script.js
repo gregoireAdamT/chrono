@@ -413,7 +413,7 @@ function enregistrerDepart() {
   const now = new Date();
   const temps = now.toLocaleTimeString('fr-FR');
 
-  records.push({
+  records.unshift({
     id: Date.now(),
     dossard: dossard || 'À saisir',
     type: 'Départ',
@@ -435,7 +435,7 @@ function enregistrerArrivee() {
   const now = new Date();
   const temps = now.toLocaleTimeString('fr-FR');
 
-  records.push({
+  records.unshift({
     id: Date.now(),
     dossard: dossard || 'À saisir',
     type: 'Arrivée', // VÉRIFICATION: Bien "Arrivée" avec accent
